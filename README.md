@@ -7,7 +7,7 @@ Development of BLASTn FPGA algorithm for Pico Computing, UW-Madison Spring 2014.
 
 Nekhil Baid, UW-Madison ECE Grad Student
 
-Yash Arya, UW-Madison ECE Grad Student
+Yashwardhan Singh, UW-Madison ECE Grad Student
 
 Taylor Johnston, UW-Madison ECE Undergrad
 
