@@ -1,0 +1,10 @@
+# Constraints file for the Smith-Waterman firmware
+# -We really just want the tools to ignore the time for the distribution of:
+# 1) matchBonus
+# 2) mismatchPenalty
+# 3) GapOpen
+# 4) GapExtend
+NET "*UserWrapper/UserModule/*SmWaWrapper*/match[*]" TIG;
+NET "*UserWrapper/UserModule/*SmWaWrapper*/mismatch[*]" TIG;
+NET "*UserWrapper/UserModule/*SmWaWrapper*/gapOpen[*]" TIG;
+NET "*UserWrapper/UserModule/*SmWaWrapper*/gapExtend[*]" TIG;
