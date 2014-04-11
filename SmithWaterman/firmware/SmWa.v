@@ -59,6 +59,7 @@ module SmWa #(
     parameter Q_POS_W                   = clogb2(MAX_QUERY_LEN),
                                                         // log(max_query_length) = number of bits required to store the index of this systolic cell
     
+    parameter SCORE_STREAM_W            = 128,          // width of the score stream
     parameter STREAM_W                  = 128,          // width of a stream
                                                         // Note: we need to load things like the query 
                                                         // via a fixed-width stream
@@ -86,7 +87,7 @@ module SmWa #(
     // the software
     output                              score_valid,
     input                               score_ready,
-    output  [STREAM_W-1:0]              score_data,
+    output  [SCORE_STREAM_W-1:0]        score_data,
     
     // Scoring Matrix, which is set via the PicoBus
     // Note: these should be signed 2's complement numbers
@@ -404,14 +405,16 @@ module SmWa #(
     assign scoreReady = ~scoreFifoFull;
     assign score_valid = ~scoreFifoEmpty;
     asyncFifoBRAM #(
-        .WIDTH      (STREAM_W)
+        .WIDTH      (SCORE_STREAM_W)
     ) scoreFifo (
         .wr_clk     (clkSmWa),
         .wr_rst     (rstSmWa),
+        // TODO: ensure that this is < STREAM_W, or else we have to go to
+        // multiple transfers to load up this FIFO
 `ifdef  USE_LOCAL_ALIGNMENT
-        .din        ({localScoreI,localScoreJ,localScore,globalScoreJ,globalScore}),
+        .din        ({SCORE_STREAM_W{1'b0}}|{localScoreI,localScoreJ,localScore,globalScoreJ,globalScore}),
 `else   // !USE_LOCAL_ALIGNMENT
-        .din        ({globalScoreJ,globalScore}),
+        .din        ({SCORE_STREAM_W{1'b0}}|{globalScoreJ,globalScore}),
 `endif  // USE_LOCAL_ALIGNMENT
         .wr_en      (scoreValid),
         .full       (scoreFifoFull),

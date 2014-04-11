@@ -92,6 +92,7 @@ module MergeStream #(
     parameter T_POS_W                   = clogb2(MAX_TARGET_LEN),
                                                         // log(max_target_length) = number of bits required to store the number of bases in the target
     
+    parameter SCORE_STREAM_W            = 128,          // width of the score stream
     parameter STREAM_W                  = 128,          // width of a stream
     parameter SCORE_W                   = 9,            // width of the signed score in this cell
     
@@ -108,7 +109,7 @@ module MergeStream #(
     // this is the data that we receive from the SmWaWrapper module
     input                               s1i_valid,
     output reg                          s1i_rdy,
-    input       [STREAM_W-1:0]          s1i_data,
+    input       [SCORE_STREAM_W-1:0]    s1i_data,
 
     // this is the data that we receive from the bypass FIFO
     input                               s2i_valid,

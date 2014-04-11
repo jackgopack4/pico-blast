@@ -57,6 +57,7 @@ module SmWaWrapper #(
     parameter Q_POS_W                   = clogb2(MAX_QUERY_LEN),
                                                         // log(max_query_length) = number of bits required to store the index of this systolic cell
     
+    parameter SCORE_STREAM_W            = 128,          // width of the score stream
     parameter STREAM_W                  = 128,          // width of a stream
                                                         // Note: we need to load things like the query 
                                                         // via a fixed-width stream
@@ -82,7 +83,7 @@ module SmWaWrapper #(
     // These are the signals for stream #1 OUT of the firmware.
     output                              s1o_valid,
     input                               s1o_rdy,
-    output  [STREAM_W-1:0]              s1o_data,
+    output  [SCORE_STREAM_W-1:0]        s1o_data,
 
     // These are the standard PicoBus signals that we'll use to communicate with the rest of the system.
     input                               PicoClk, 
@@ -205,6 +206,7 @@ module SmWaWrapper #(
         .T_POS_W                        (T_POS_W),
         .Q_POS_W                        (Q_POS_W),
         
+        .SCORE_STREAM_W                 (SCORE_STREAM_W),
         .STREAM_W                       (STREAM_W),
 
         .PICOBUS_ADDR                   (PICOBUS_ADDR+32'h2000)

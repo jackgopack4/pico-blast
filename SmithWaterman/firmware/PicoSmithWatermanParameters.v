@@ -117,3 +117,6 @@ localparam RST_PIPE_STAGES      = 16;
 
 // address for writing the sub matrix via the PicoBus
 localparam SCORE_MATRIX_ADDR    = 32'h140;
+
+// this is the width of the stream out of the smwawrapper w/ the score info
+localparam SCORE_STREAM_W       = 128;
