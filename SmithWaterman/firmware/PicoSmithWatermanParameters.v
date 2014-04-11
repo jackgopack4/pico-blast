@@ -114,3 +114,6 @@ localparam PICOBUS_ADDR_INCR    = 32'h10000;
 
 // number of cycles that we delay reset with respect to the stream reset
 localparam RST_PIPE_STAGES      = 16;
+
+// address for writing the sub matrix via the PicoBus
+localparam SCORE_MATRIX_ADDR    = 32'h140;

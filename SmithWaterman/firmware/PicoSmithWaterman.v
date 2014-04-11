@@ -589,6 +589,7 @@ module PicoSmithWaterman #(
             .Q_POS_W                    (Q_POS_W),
             
             .STREAM_W                   (STREAM_W),
+            .SCORE_ADDR                 (SCORE_MATRIX_ADDR),
 
             .PICOBUS_ADDR               (PICOBUS_ADDR+((unit+1)*PICOBUS_ADDR_INCR)+32'h200)
         ) SmWaWrapper (

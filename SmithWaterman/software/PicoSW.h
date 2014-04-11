@@ -93,7 +93,7 @@ typedef struct StreamInfo {
 #define CONFIG_ADDR             0x0
 
 // PicoBus address for writing to the affine gap model scores
-#define SCORE_MATRIX_ADDR       0xBEEF0000
+#define SCORE_MATRIX_ADDR       0x140
 
 // we use this PicoBus address to write a low and high score threshold to the PicoBus
 #define THRESHOLD_SCORE_ADDR    0xBEEF0040

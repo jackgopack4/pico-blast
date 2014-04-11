@@ -50,28 +50,37 @@ int WriteScoringMatrix(PicoDrv* aligner, ScoreMatrix_t* score_matrix){
     
     int     err;
     int     addr=SCORE_MATRIX_ADDR;
+    int     score;
 
     printf("Writing the substitution matrix via the PicoBus\n"); 
     
-    // match
-    addr = SCORE_MATRIX_ADDR;
-    if (VERBOSE) printf("Writing match score = %i to address = 0x%X\n", score_matrix->match, addr);
-    if ((err = aligner->WriteDeviceAbsolute(addr, &score_matrix->match, 4)) < 0) return err;
+    // match - must be >= 0
+    addr    = SCORE_MATRIX_ADDR;
+    score   = score_matrix->match;
+    if (score < 0) score = 0 - score;
+    if (VERBOSE) printf("Writing match score = %i to address = 0x%X\n", score, addr);
+    if ((err = aligner->WriteDeviceAbsolute(addr, &score, 4)) < 0) return err;
     
-    // mismatch
-    addr += 16;
-    if (VERBOSE) printf("Writing mismatch score = %i to address = 0x%X\n", score_matrix->mismatch, addr);
-    if ((err = aligner->WriteDeviceAbsolute(addr, &score_matrix->mismatch, 4)) < 0) return err;
+    // mismatch - must be <= 0
+    addr    += 16;
+    score   = score_matrix->mismatch;
+    if (score > 0) score = 0 - score;
+    if (VERBOSE) printf("Writing mismatch score = %i to address = 0x%X\n", score, addr);
+    if ((err = aligner->WriteDeviceAbsolute(addr, &score, 4)) < 0) return err;
     
-    // gap open
-    addr += 16;
-    if (VERBOSE) printf("Writing gap open score = %i to address = 0x%X\n", score_matrix->gapOpen, addr);
-    if ((err = aligner->WriteDeviceAbsolute(addr, &score_matrix->gapOpen, 4)) < 0) return err;
+    // gap open - must be <= 0
+    addr    += 16;
+    score   = score_matrix->gapOpen;
+    if (score > 0) score = 0 - score;
+    if (VERBOSE) printf("Writing gap open score = %i to address = 0x%X\n", score, addr);
+    if ((err = aligner->WriteDeviceAbsolute(addr, &score, 4)) < 0) return err;
     
-    // gap extend
-    addr += 16;
-    if (VERBOSE) printf("Writing gap extend score = %i to address = 0x%X\n", score_matrix->gapExtend, addr);
-    if ((err = aligner->WriteDeviceAbsolute(addr, &score_matrix->gapExtend, 4)) < 0) return err;
+    // gap extend - must be <= 0
+    addr    += 16;
+    score   = score_matrix->gapExtend;
+    if (score > 0) score = 0 - score;
+    if (VERBOSE) printf("Writing gap extend score = %i to address = 0x%X\n", score, addr);
+    if ((err = aligner->WriteDeviceAbsolute(addr, &score, 4)) < 0) return err;
 
     return err;
 }
