@@ -132,6 +132,8 @@ int AlignQueryToDB(StreamInfo_t* info){
     kseq_t*     query           = info->start_info.query_seq;
     kseq_t*     db              = info->start_info.db_seq;
     int         stream_base_w   = info->cfg->info[13];
+    int         max_query_len   = info->cfg->info[4];
+    int         max_db_len      = info->cfg->info[6];
     int         buf_ptr         = 0;
     uint64_t*   tx_buf;
     int         buf_size;
@@ -144,7 +146,16 @@ int AlignQueryToDB(StreamInfo_t* info){
         printf("db length       = %i\n", (int) db->seq.l);
         printf("stream_base_w   = %i\n", stream_base_w);
     }
-    
+
+    // check that the query and target don't violate the max length requirements
+    if ((int) query->seq.l > max_query_len){
+        fprintf(stderr, "query length = %i violates the max query length = %i\n", (int) query->seq.l, max_query_len);
+        return -1;
+    }else if ((int) db->seq.l > max_db_len){
+        fprintf(stderr, "db length = %i violates the max db length = %i\n", (int) db->seq.l, max_db_len);
+        return -1;
+    }
+
     // first we create a buffer which we are going to use for sending our data
     buf_size        =   16 * (
                         ((query->seq.l + (128/stream_base_w) - 1) / (128/stream_base_w)) +  // query bases
@@ -292,7 +303,7 @@ int main(int argc, char* argv[]) {
 	
     if ((err = WriteScoringMatrix(aligner, args.getScoreMatrix())) < 0){
 		fprintf(stderr, "WriteScoringMatrix error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
-		exit(EXIT_FAILURE);
+		return EXIT_FAILURE;
     }
     
     ///////////////////////////
@@ -303,6 +314,10 @@ int main(int argc, char* argv[]) {
 	
     // open the query file
 	queryFile   = gzopen(args.getQueryFile().c_str(), "r");
+    if (queryFile == Z_NULL){
+		fprintf(stderr, "Unable to open query file: %s\n", args.getQueryFile().c_str());
+        return EXIT_FAILURE;
+    }
 	querySeq    = kseq_init(queryFile);
 
     // read the query in from the file
@@ -315,6 +330,10 @@ int main(int argc, char* argv[]) {
     
     // Open the files for the database sequence
     dbFile      = gzopen(args.getDbFile().c_str(), "r");
+    if (dbFile == Z_NULL){
+		fprintf(stderr, "Unable to open db file: %s\n", args.getQueryFile().c_str());
+        return EXIT_FAILURE;
+    }
     dbSeq       = kseq_init(dbFile);
     
     // read the db in from the file

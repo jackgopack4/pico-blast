@@ -588,7 +588,7 @@ module PicoSmithWaterman #(
             .T_POS_W                    (T_POS_W),
             .Q_POS_W                    (Q_POS_W),
             
-            .STREAM_W                   (STREAM_W),
+            .STREAM_W                   (INT_STREAM_W),
             .SCORE_ADDR                 (SCORE_MATRIX_ADDR),
 
             .PICOBUS_ADDR               (PICOBUS_ADDR+((unit+1)*PICOBUS_ADDR_INCR)+32'h200)

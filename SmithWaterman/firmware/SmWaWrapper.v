@@ -153,6 +153,7 @@ module SmWaWrapper #(
 
         .BASE_W                         (BASE_W),
         .MAX_STREAM1_LEN                (MAX_QUERY_LEN),
+        .MAX_STREAM2_LEN                (MAX_TARGET_LEN),
         
         .STREAM2_POS_W                  (T_POS_W),
         .STREAM1_POS_W                  (Q_POS_W),
