@@ -31,12 +31,14 @@ module StreamDemux #(
     parameter VERBOSE                   = 1,            // set to 1 for verbose debugging statements in simulation
 
     parameter BASE_W                    = 2,            // width of a single query/target base
-    parameter MAX_STREAM1_LEN           = 100,          // maximum sequence length on stream 1 length
+    parameter MAX_STREAM1_LEN           = 100,          // maximum sequence length on stream 1
+    parameter MAX_STREAM2_LEN           = 100,          // maximum sequence length on stream 2
 
     
-    parameter STREAM2_POS_W             = 9,            // log(max_stream2_length)
     parameter STREAM1_POS_W             = clogb2(MAX_STREAM1_LEN),
-                                                        // log(max_stream1_length)
+                                                        // log(MAX_STREAM1_LENGTH)
+    parameter STREAM2_POS_W             = clogb2(MAX_STREAM2_LEN),
+                                                        // log(MAX_STREAM2_LENGTH)
     
     parameter STREAM_W                  = 128,          // width of a stream
     parameter PICOBUS_ADDR              = 0

@@ -65,6 +65,7 @@
 *
 * Copyright     : 2013, Pico Computing, Inc.
 */
+`include "PicoDefines.v"
 module SplitStream #(
     parameter NAME                      = "",           // name of this module
     parameter VERBOSE                   = 1,            // set to 1 for verbose debugging statements in simulation
@@ -190,6 +191,28 @@ module SplitStream #(
         end
     endfunction
     
+    // this converts ASCII data to a N-bit-per-base encoding
+    function    [INT_BASE_W-1:0]    AsciiCharToBase;
+        input   [STREAM_BASE_W-1:0] char;
+        begin
+            case(char)
+                "a":        AsciiCharToBase = 0;
+                "A":        AsciiCharToBase = 0;
+                "c":        AsciiCharToBase = 1;
+                "C":        AsciiCharToBase = 1;
+                "g":        AsciiCharToBase = 2;
+                "G":        AsciiCharToBase = 2;
+                "t":        AsciiCharToBase = 3;
+                "T":        AsciiCharToBase = 3;
+                // Note: if we use a 2-bit-per-base encoding, then this will
+                // look like an 'A'
+                "n":        AsciiCharToBase = 4;
+                "N":        AsciiCharToBase = 4;
+                default:    AsciiCharToBase = 0;
+            endcase
+        end
+    endfunction
+    
     // converts from a STREAM_BASE_W per bit encoding to a INT_BASE_W encoding
     function    [INT_STREAM_W-1:0]  ConvertBaseWidth;
         input   [STREAM_W-1:0]      stream_data;
@@ -205,7 +228,12 @@ module SplitStream #(
             // -if STREAM_W/STREAM_BASE_W is not an integer, we assume we have
             // some wasted space in the stream data at the MS bits
             for (b=0; b<BASES_PER_TX; b=b+1) begin
-                ConvertBaseWidth = ConvertBaseWidth | (CharToBase(stream_data_local) << (b*INT_BASE_W));
+`ifdef ASCII_INPUT_DATA
+                base = AsciiCharToBase(stream_data_local);
+`else
+                base = CharToBase(stream_data_local);
+`endif
+                ConvertBaseWidth = ConvertBaseWidth | (base << (b*INT_BASE_W));
                 stream_data_local = stream_data_local >> STREAM_BASE_W;
             end
         end
@@ -486,7 +514,17 @@ module SplitStream #(
             else begin
                 s1o_data            <= s1i_data [INT_STREAM_W-1:0];
             end
-            if (VERBOSE) $display("%t : %s : loading data [%0d] into output buffer for stream 1 = 0x%h", $realtime, NAME, s1o_count, s1i_data);
+            if (VERBOSE) begin
+`ifdef ASCII_INPUT_DATA
+                if (convert1) begin
+                    $display("%t : %s : loading data [%0d] into output buffer for stream 1 = 0x%s", $realtime, NAME, s1o_count, s1i_data);
+                end else begin
+                    $display("%t : %s : loading data [%0d] into output buffer for stream 1 = 0x%h", $realtime, NAME, s1o_count, s1i_data);
+                end
+`else
+                $display("%t : %s : loading data [%0d] into output buffer for stream 1 = 0x%h", $realtime, NAME, s1o_count, s1i_data);
+`endif
+            end
         end else if (s1o_rdy) begin
             s1o_data                <= 'hX;
             s1o_valid               <= 0;
@@ -502,7 +540,7 @@ module SplitStream #(
             s2o_valid               <= s1i_valid;
             // stream 2's data does NOT get converted in size
             s2o_data                <= s1i_data;
-            if (VERBOSE) $display("%t : %s : loading data [%0d] into output buffer for stream 2 = 0x%h", $realtime, NAME, s2o_count, s1i_data);
+            //if (VERBOSE) $display("%t : %s : loading data [%0d] into output buffer for stream 2 = 0x%h", $realtime, NAME, s2o_count, s1i_data);
         end else if (s2o_rdy) begin
             s2o_data                <= 'hX;
             s2o_valid               <= 0;
@@ -526,18 +564,18 @@ module SplitStream #(
         end else begin
             // 1) count the number of transactions accepted from the input stream
             if (s1i_valid && s1i_rdy) begin
-                if (VERBOSE) $display("%t : %s : receiving data [%0d] from input stream 1 = 0x%h", $realtime, NAME, s1i_count, s1i_data);
+                //if (VERBOSE) $display("%t : %s : receiving data [%0d] from input stream 1 = 0x%h", $realtime, NAME, s1i_count, s1i_data);
                 s1i_count           <= s1i_count + 1;
             end
             // 2) count the number of transfers sent to output stream 1
             if (s1o_valid && s1o_rdy) begin
                 s1o_count           <= s1o_count + 1;
-                if (VERBOSE) $display("%t : %s : sending data [%0d] to output stream 1 = 0x%h", $realtime, NAME, s1o_count, s1o_data);
+                //if (VERBOSE) $display("%t : %s : sending data [%0d] to output stream 1 = 0x%h", $realtime, NAME, s1o_count, s1o_data);
             end
             // 3) count the number of transfers sent to output stream 2
             if (s2o_valid && s2o_rdy) begin
                 s2o_count           <= s2o_count + 1;
-                if (VERBOSE) $display("%t : %s : sending data [%0d] to output stream 2 = 0x%h", $realtime, NAME, s2o_count, s2o_data);
+                //if (VERBOSE) $display("%t : %s : sending data [%0d] to output stream 2 = 0x%h", $realtime, NAME, s2o_count, s2o_data);
             end
         end
         // 4) output some status signals

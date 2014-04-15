@@ -79,6 +79,7 @@
 *
 * Copyright     : 2013, Pico Computing, Inc.
 */
+`include "PicoDefines.v"
 module MergeStream #(
     parameter NAME                      = "",           // name of this module
     parameter VERBOSE                   = 1,            // set to 1 for verbose debugging statements in simulation
@@ -92,6 +93,7 @@ module MergeStream #(
     parameter T_POS_W                   = clogb2(MAX_TARGET_LEN),
                                                         // log(max_target_length) = number of bits required to store the number of bases in the target
     
+    parameter SCORE_STREAM_W            = 128,          // width of the score stream
     parameter STREAM_W                  = 128,          // width of a stream
     parameter SCORE_W                   = 9,            // width of the signed score in this cell
     
@@ -108,7 +110,7 @@ module MergeStream #(
     // this is the data that we receive from the SmWaWrapper module
     input                               s1i_valid,
     output reg                          s1i_rdy,
-    input       [STREAM_W-1:0]          s1i_data,
+    input       [SCORE_STREAM_W-1:0]    s1i_data,
 
     // this is the data that we receive from the bypass FIFO
     input                               s2i_valid,
@@ -257,6 +259,10 @@ module MergeStream #(
     // the query
     reg                             doTarget=0;
 
+    // this is just a temporary variable that we use to compute and then
+    // sign-extend the new score
+    reg     [SCORE_W-1:0]           score;
+
     /////////
     // FSM //
     /////////
@@ -289,6 +295,7 @@ module MergeStream #(
         doTarget        = 0;
         loadInfo        = 0;
         loadData        = 0;
+        score           = 'hX;
         next_s1o_data   = 'hX;
         next_s1o_valid  = 0;
         s1i_rdy         = 0;
@@ -324,11 +331,11 @@ module MergeStream #(
 
                 // this is the new header that we are forming for the output
                 // stream
-                next_s1o_data       = {GetScore(s1i_data,1),
-                                        {(16-MAX_POS_W){1'b0}},
-                                        nextLength_1};
+                score               = GetScore(s1i_data,1);
                 next_s1o_valid      = 1;
-
+                next_s1o_data[31:16]= {{(16-SCORE_W){score[SCORE_W-1]}},score};
+                next_s1o_data[15:0] = nextLength_1;
+                
                 // now send the query header to the output stream
                 if (s2i_rdy) begin
                     loadData        = 1;
@@ -523,9 +530,12 @@ module MergeStream #(
                 // we take the _max_off parameter from the sideband fifo and we
                 // insert the global alignment score for this transfer to the
                 // output stream
-                next_s1o_data       = { s2i_data[127:64],
-                                        GetScore(s1i_data,0)};
+                // Note: assume the score should be 16 bits on the output
+                // stream
+                score               = GetScore(s1i_data,0);
                 next_s1o_valid      = s2i_valid;
+                next_s1o_data[127:16]= s2i_data[127:16];
+                next_s1o_data[15:0] = {{(16-SCORE_W){score[SCORE_W-1]}},score};
 
                 // send the data to the output stream by asserting loadData
                 if (s2i_rdy) begin
@@ -579,7 +589,17 @@ module MergeStream #(
         end else if (loadData) begin
             s1o_valid               <= next_s1o_valid;
             s1o_data                <= next_s1o_data;
-            if (VERBOSE && next_s1o_valid) $display("%t : %s : loading data [%0d] into output buffer for stream 1 = 0x%h", $realtime, NAME, s1o_count, next_s1o_data);
+            if (VERBOSE && next_s1o_valid) begin
+`ifdef ASCII_INPUT_DATA
+                if (state == DATA_Q || state == DATA_T) begin
+                    $display("%t : %s : loading data [%0d] into output buffer for stream 1 = 0x%s", $realtime, NAME, s1o_count, next_s1o_data);
+                end else begin
+                    $display("%t : %s : loading data [%0d] into output buffer for stream 1 = 0x%h", $realtime, NAME, s1o_count, next_s1o_data);
+                end
+`else
+                $display("%t : %s : loading data [%0d] into output buffer for stream 1 = 0x%h", $realtime, NAME, s1o_count, next_s1o_data);
+`endif
+            end            
         end else if (s1o_rdy) begin
             s1o_data                <= 'hX;
             s1o_valid               <= 0;
@@ -604,18 +624,18 @@ module MergeStream #(
         end else begin
             // 1) count the number of transactions accepted from the input stream 1
             if (s1i_valid && s1i_rdy) begin
-                if (VERBOSE) $display("%t : %s : receiving data [%0d] from input stream 1 = 0x%h", $realtime, NAME, s1i_count, s1i_data);
+                //if (VERBOSE) $display("%t : %s : receiving data [%0d] from input stream 1 = 0x%h", $realtime, NAME, s1i_count, s1i_data);
                 s1i_count           <= s1i_count + 1;
             end
             // 2) count the number of transactions accepted from the input stream 2
             if (s2i_valid && s2i_rdy) begin
-                if (VERBOSE) $display("%t : %s : receiving data [%0d] from input stream 2 = 0x%h", $realtime, NAME, s2i_count, s2i_data);
+                //if (VERBOSE) $display("%t : %s : receiving data [%0d] from input stream 2 = 0x%h", $realtime, NAME, s2i_count, s2i_data);
                 s2i_count           <= s2i_count + 1;
             end
             // 3) count the number of transfers sent to output stream 1
             if (s1o_valid && s1o_rdy) begin
                 s1o_count           <= s1o_count + 1;
-                if (VERBOSE) $display("%t : %s : sending data [%0d] to output stream 1 = 0x%h", $realtime, NAME, s1o_count, s1o_data);
+                //if (VERBOSE) $display("%t : %s : sending data [%0d] to output stream 1 = 0x%h", $realtime, NAME, s1o_count, s1o_data);
             end
         end
         // 4) output some status signals

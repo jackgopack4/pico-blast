@@ -265,8 +265,8 @@ module SystolicArray #(
     // Note: we are only shifting data through this systolic array if it is
     // enabled
     always @ (posedge clk) begin
+        targetBaseIn    <= targetIn;
         if (enable) begin
-            targetBaseIn<= targetIn;
             targetStart <= (targetStart<<1) | targetInStart;
             targetLast  <= (targetLast<<1) | targetInLast;
         end
@@ -420,6 +420,7 @@ module SystolicArray #(
             .targetIn       (target         [c]),
             .newTargetIn    (targetStart    [c]),
             .targetOut      (target         [c+1]),
+            .endTargetIn    (targetLast     [c]),
 
 `ifdef  USE_AFFINE_GAP
             .f_in           (f              [c]),
@@ -446,18 +447,21 @@ module SystolicArray #(
 
     // we need to track the best global alignment score and index out of the
     // bottom systolic cell
-    reg                 [SCORE_W-1:0]   bestScore=0;
+    reg     signed      [SCORE_W-1:0]   bestScore=0;
     reg                 [T_POS_W-1:0]   bestScoreJ=0;
     reg                 [T_POS_W-1:0]   targetBase=0;
+    wire    signed      [SCORE_W-1:0]   currScore = h[MAX_QUERY_LEN];
     always @ (posedge clk) begin
         if (targetStart[MAX_QUERY_LEN]) begin
             bestScore       <= h        [MAX_QUERY_LEN];
             bestScoreJ      <= 0;
             targetBase      <= 0;
         end else begin
-            targetBase      <= targetBase + 1;
+            if (enable) begin
+                targetBase  <= targetBase + 1;
+            end
             // give priority to earlier alignments
-            if (h[MAX_QUERY_LEN] > bestScore) begin
+            if ($signed(h[MAX_QUERY_LEN]) > bestScore) begin
                 bestScore   <= h        [MAX_QUERY_LEN];
                 bestScoreJ  <= targetBase;
             end

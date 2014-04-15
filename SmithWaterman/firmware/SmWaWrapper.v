@@ -57,9 +57,11 @@ module SmWaWrapper #(
     parameter Q_POS_W                   = clogb2(MAX_QUERY_LEN),
                                                         // log(max_query_length) = number of bits required to store the index of this systolic cell
     
+    parameter SCORE_STREAM_W            = 128,          // width of the score stream
     parameter STREAM_W                  = 128,          // width of a stream
                                                         // Note: we need to load things like the query 
                                                         // via a fixed-width stream
+    parameter SCORE_ADDR                = 32'h100,      // PicoBus address for writing the score matrix parameters
     parameter PICOBUS_ADDR              = 0
 )
 (
@@ -81,7 +83,7 @@ module SmWaWrapper #(
     // These are the signals for stream #1 OUT of the firmware.
     output                              s1o_valid,
     input                               s1o_rdy,
-    output  [STREAM_W-1:0]              s1o_data,
+    output  [SCORE_STREAM_W-1:0]        s1o_data,
 
     // These are the standard PicoBus signals that we'll use to communicate with the rest of the system.
     input                               PicoClk, 
@@ -152,6 +154,7 @@ module SmWaWrapper #(
 
         .BASE_W                         (BASE_W),
         .MAX_STREAM1_LEN                (MAX_QUERY_LEN),
+        .MAX_STREAM2_LEN                (MAX_TARGET_LEN),
         
         .STREAM2_POS_W                  (T_POS_W),
         .STREAM1_POS_W                  (Q_POS_W),
@@ -203,6 +206,7 @@ module SmWaWrapper #(
         .T_POS_W                        (T_POS_W),
         .Q_POS_W                        (Q_POS_W),
         
+        .SCORE_STREAM_W                 (SCORE_STREAM_W),
         .STREAM_W                       (STREAM_W),
 
         .PICOBUS_ADDR                   (PICOBUS_ADDR+32'h2000)
@@ -347,11 +351,11 @@ module SmWaWrapper #(
         end else if (PicoWr) begin
             PicoDataOutLocal    <= 0;
             case(PicoAddr)
-                (PICOBUS_ADDR+32'h40):  match           <= PicoDataIn;
-                (PICOBUS_ADDR+32'h50):  mismatch        <= PicoDataIn;
-                (PICOBUS_ADDR+32'h60):  gapOpen         <= PicoDataIn;
+                (SCORE_ADDR+32'h00):    match           <= PicoDataIn;
+                (SCORE_ADDR+32'h10):    mismatch        <= PicoDataIn;
+                (SCORE_ADDR+32'h20):    gapOpen         <= PicoDataIn;
 `ifdef  USE_AFFINE_GAP
-                (PICOBUS_ADDR+32'h70):  gapExtend       <= PicoDataIn;
+                (SCORE_ADDR+32'h30):    gapExtend       <= PicoDataIn;
 `endif  // USE_AFFINE_GAP
             endcase
         end else if (PicoRd) begin
@@ -361,11 +365,11 @@ module SmWaWrapper #(
                 (PICOBUS_ADDR+32'h10):  PicoDataOutLocal<= s1i_count_2;
                 (PICOBUS_ADDR+32'h20):  PicoDataOutLocal<= s1o_count_2;
                 (PICOBUS_ADDR+32'h30):  PicoDataOutLocal<= status_2;
-                (PICOBUS_ADDR+32'h40):  PicoDataOutLocal<= match;
-                (PICOBUS_ADDR+32'h50):  PicoDataOutLocal<= mismatch;
-                (PICOBUS_ADDR+32'h60):  PicoDataOutLocal<= gapOpen;
+                (SCORE_ADDR+32'h00):    PicoDataOutLocal<= match;
+                (SCORE_ADDR+32'h10):    PicoDataOutLocal<= mismatch;
+                (SCORE_ADDR+32'h20):    PicoDataOutLocal<= gapOpen;
 `ifdef  USE_AFFINE_GAP
-                (PICOBUS_ADDR+32'h70):  PicoDataOutLocal<= gapExtend;
+                (SCORE_ADDR+32'h30):    PicoDataOutLocal<= gapExtend;
 `endif  // USE_AFFINE_GAP
                 (PICOBUS_ADDR+32'h80):  PicoDataOutLocal<= target_count_2;
                 (PICOBUS_ADDR+32'h90):  PicoDataOutLocal<= query_count_2;
