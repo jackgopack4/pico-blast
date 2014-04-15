@@ -61,11 +61,17 @@
 *                 N+3       ...                 ...
 *                 ...
 *                 M-1       127:0               target bases [target length - 1:target length - 64]
-*                 M         127:64              *_qle
-*                           63:0                reserved
-*                 M+1       127:64              *_gtle
+*                 M         127:64              *mat
+*                           63:0                m
+*                 M+1       127:64              gape
+*                           63:0                gapo
+*                 M+2       127:64              end_bonus
+*                           63:0                w
+*                 M+3       127:64              *_qle
+*                           63:0                zdrop
+*                 M+4       127:64              *_gtle
 *                           63:0                *_tle
-*                 M+2       127:64              *_max_off
+*                 M+5       127:64              *_max_off
 *                           63:0                *_gscore
 *
 *                 -Format of data on output stream:
@@ -85,11 +91,17 @@
 *                 N+3       ...                 ...
 *                 ...
 *                 M-1       127:0               target bases [target length - 1:target length - 64]
-*                 M         127:64              *_qle
-*                           63:0                reserved
-*                 M+1       127:64              *_gtle
+*                 M         127:64              *mat
+*                           63:0                m
+*                 M+1       127:64              gape
+*                           63:0                gapo
+*                 M+2       127:64              end_bonus
+*                           63:0                w
+*                 M+3       127:64              *_qle
+*                           63:0                zdrop
+*                 M+4       127:64              *_gtle
 *                           63:0                *_tle
-*                 M+2       127:64              *_max_off
+*                 M+5       127:64              *_max_off
 *                           63:0                *_gscore
 *
 * Assumptions   : 1) we align exactly 1 target per 1 query
@@ -104,6 +116,7 @@
 *                 5) for now, each target-query alignment pair produce exactly
 *                    1 result in the output stream
 *                 6) we must instantiate at least 1 SmWaWrapper module
+*                 7) SCORE_W <= INT_STREAM_W - 16
 *
 * Copyright     : 2013, Pico Computing, Inc.
 */
@@ -112,7 +125,7 @@
 module PicoSmithWaterman #(
     parameter NAME                      = "PicoSmithWaterman",           
                                                         // name of this module
-    parameter VERBOSE                   = 1,            // set to 1 for verbose debugging statements in simulation
+    parameter VERBOSE                   = 0,            // set to 1 for verbose debugging statements in simulation
     parameter PICOBUS_ADDR              = 0             // base address for reading/writing this module via the PicoBus
 )
 (
@@ -518,7 +531,7 @@ module PicoSmithWaterman #(
             .STREAM_W                   (STREAM_W),
             .INT_STREAM_W               (INT_STREAM_W),
 
-            .NUM_EXTRA_TX               (3),
+            .NUM_EXTRA_TX               (NUM_EXTRA_TX),
 
             .PICOBUS_ADDR               (PICOBUS_ADDR+((unit+1)*PICOBUS_ADDR_INCR))
         ) SplitStream (
@@ -645,7 +658,7 @@ module PicoSmithWaterman #(
             // sideband fifo to the output stream
             // last 3 transfers require this module to insert some data from
             // the SmWaWrapper
-            .NUM_EXTRA_TX               (0),
+            .NUM_EXTRA_TX               (NUM_EXTRA_TX-3),
 
             .PICOBUS_ADDR               (PICOBUS_ADDR+((unit+1)*PICOBUS_ADDR_INCR)+32'h100)
         ) MergeStream (
@@ -701,6 +714,7 @@ module PicoSmithWaterman #(
             case (PicoAddr)
                 (PICOBUS_ADDR+32'h00):  PicoDataOutLocal<= version;
                 (PICOBUS_ADDR+32'h10):  PicoDataOutLocal<= PICOBUS_ADDR_INCR;
+                (PICOBUS_ADDR+32'h20):  PicoDataOutLocal<= NUM_EXTRA_TX;
                 //(PICOBUS_ADDR+32'h30):  PicoDataOutLocal<= status;
                 (PICOBUS_ADDR+32'h40):  PicoDataOutLocal<= MAX_QUERY_LENGTH;
                 (PICOBUS_ADDR+32'h50):  PicoDataOutLocal<= Q_POS_W;
@@ -713,6 +727,13 @@ module PicoSmithWaterman #(
                 (PICOBUS_ADDR+32'hC0):  PicoDataOutLocal<= INT_STREAM_W;
                 (PICOBUS_ADDR+32'hD0):  PicoDataOutLocal<= STREAM_BASE_W;
                 (PICOBUS_ADDR+32'hE0):  PicoDataOutLocal<= INT_BASE_W;
+                (PICOBUS_ADDR+32'hF0):  PicoDataOutLocal<= MAX_GAP_OPEN;
+                (PICOBUS_ADDR+32'h100): PicoDataOutLocal<= MAX_GAP_EXTEND;
+`ifdef  USE_LOCAL_ALIGNMENT
+                (PICOBUS_ADDR+32'h110): PicoDataOutLocal<= 1;
+`else
+                (PICOBUS_ADDR+32'h110): PicoDataOutLocal<= 0;
+`endif
             endcase
         end else begin
             PicoDataOutLocal    <= 0;
@@ -729,7 +750,10 @@ module PicoSmithWaterman #(
     end
 
     initial begin
-        $monitor("PicoAddr = 0x%h, PicoDataOut = 0x%h", PicoAddr_1, PicoDataOut);
+        if (VERBOSE) $monitor("PicoAddr = 0x%h, PicoDataOut = 0x%h", PicoAddr_1, PicoDataOut);
+        if (SCORE_W > (INT_STREAM_W-16)) begin
+            $display("%s: error: SCORE_W = %d must be less than %d-16 = %d", NAME, SCORE_W, INT_STREAM_W, INT_STREAM_W-16);
+        end
     end
 
 endmodule

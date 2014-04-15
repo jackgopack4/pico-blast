@@ -50,15 +50,20 @@ typedef struct StartStreamInfo {
 
 // this struct contains the special info needed to gather the results of an alignment
 typedef struct EndStreamInfo {
+    int             localScore;
+    int             localTargetBase;
+    int             localQueryBase;
+    int             globalScore;
+    int             globalTargetBase;
 } EndInfo_t;
 
 // this is the configuration info for the selected FPGA programming file
 typedef struct fpga_cfg {
-    int             info            [15];
+    int             info            [18];
     /*
 0:  int             version
 1:  int             picobus_addr_incr;
-2:                  VACANT
+2:  int             num_extra_tx;
 3:  int             status;
 4:  int             max_query_length;
 5:  int             q_pos_w;
@@ -71,6 +76,9 @@ typedef struct fpga_cfg {
 12: int             int_stream_w;
 13: int             stream_base_w;
 14: int             int_base_w;
+15: int             max_gap_open;
+16: int             max_gap_extend;
+17: int             use_local_alignment
     */
 } fpga_cfg_t;
 
@@ -124,21 +132,6 @@ int WriteScoringMatrix(PicoDrv* aligner, ScoreMatrix_t* score_matrix);
 
 /*
  * This reads the current Smith-Waterman configuration info from the FPGA.
- * This includes:
- *  -version;
- *  -picobus_addr_incr;
- *  -status;
- *  -max_query_length;
- *  -q_pos_w;
- *  -max_target_length;
- *  -t_pos_w;
- *  -num_sw_units;
- *  -sw_clk_freq;
- *  -score_w;
- *  -stream_w;
- *  -int_stream_w;
- *  -stream_base_w;
- *  -int_base_w;
  */
 int ReadConfig(PicoDrv* aligner, fpga_cfg_t* cfg);
 

@@ -46,7 +46,7 @@
  * hardware than to just write this via the PicoBus due to timing 
  * concerns.
  */
-int WriteScoringMatrix(PicoDrv* aligner, ScoreMatrix_t* score_matrix){
+int WriteScoringMatrix(PicoDrv* aligner, ScoreMatrix_t* score_matrix, fpga_cfg_t* cfg){
     
     int     err;
     int     addr=SCORE_MATRIX_ADDR;
@@ -72,6 +72,10 @@ int WriteScoringMatrix(PicoDrv* aligner, ScoreMatrix_t* score_matrix){
     addr    += 16;
     score   = score_matrix->gapOpen;
     if (score > 0) score = 0 - score;
+    if (score < (-1*cfg->info[15])){
+        printf("abs(gap open) = %i must be <= %i\n", score_matrix->gapOpen, cfg->info[15]);
+        return -1;
+    }
     if (VERBOSE) printf("Writing gap open score = %i to address = 0x%X\n", score, addr);
     if ((err = aligner->WriteDeviceAbsolute(addr, &score, 4)) < 0) return err;
     
@@ -79,6 +83,10 @@ int WriteScoringMatrix(PicoDrv* aligner, ScoreMatrix_t* score_matrix){
     addr    += 16;
     score   = score_matrix->gapExtend;
     if (score > 0) score = 0 - score;
+    if (score < (-1*cfg->info[16])){
+        printf("abs(gap extend) = %i must be <= %i\n", score_matrix->gapExtend, cfg->info[16]);
+        return -1;
+    }
     if (VERBOSE) printf("Writing gap extend score = %i to address = 0x%X\n", score, addr);
     if ((err = aligner->WriteDeviceAbsolute(addr, &score, 4)) < 0) return err;
 
@@ -90,6 +98,7 @@ int WriteScoringMatrix(PicoDrv* aligner, ScoreMatrix_t* score_matrix){
  * This includes:
  *  -version;
  *  -picobus_addr_incr;
+ *  -num_extra_tx;
  *  -status;
  *  -max_query_length;
  *  -q_pos_w;
@@ -102,6 +111,8 @@ int WriteScoringMatrix(PicoDrv* aligner, ScoreMatrix_t* score_matrix){
  *  -int_stream_w;
  *  -stream_base_w;
  *  -int_base_w;
+ *  -max_gap_open;
+ *  -max_gap_extend;
  */
 int ReadConfig(PicoDrv* aligner, fpga_cfg_t* cfg){
 
@@ -134,6 +145,8 @@ int AlignQueryToDB(StreamInfo_t* info){
     int         stream_base_w   = info->cfg->info[13];
     int         max_query_len   = info->cfg->info[4];
     int         max_db_len      = info->cfg->info[6];
+    int         num_extra_tx    = info->cfg->info[2];
+    int         prev_score      = 0;
     int         buf_ptr         = 0;
     uint64_t*   tx_buf;
     int         buf_size;
@@ -160,7 +173,7 @@ int AlignQueryToDB(StreamInfo_t* info){
     buf_size        =   16 * (
                         ((query->seq.l + (128/stream_base_w) - 1) / (128/stream_base_w)) +  // query bases
                         ((db->seq.l + (128/stream_base_w) - 1) / (128/stream_base_w))    +  // db bases
-                        1 + 1 + 3);                                                         // query len, target len, 3 extra @ end
+                        1 + 1 + num_extra_tx);                                              // query len, target len, extra @ end
     tx_buf = new uint64_t[buf_size/sizeof(uint64_t)];
     memset(tx_buf,0,buf_size/sizeof(tx_buf[0]));
     
@@ -172,7 +185,7 @@ int AlignQueryToDB(StreamInfo_t* info){
     buf_ptr += (16 / sizeof(tx_buf[0])) * ((query->seq.l + (128/stream_base_w) - 1) / (128/stream_base_w));
     
     // TARGET
-    tx_buf[buf_ptr] = (0<<16) | db->seq.l;
+    tx_buf[buf_ptr] = (prev_score<<16) | db->seq.l;
     buf_ptr += 16 / sizeof(tx_buf[0]);
     memcpy(&tx_buf[buf_ptr], db->seq.s, db->seq.l);
 
@@ -197,23 +210,35 @@ int ReceiveScore(StreamInfo_t* info){
     kseq_t*     query           = info->start_info.query_seq;
     kseq_t*     db              = info->start_info.db_seq;
     int         stream_base_w   = info->cfg->info[13];
-    int16_t*    rx_buf;
+    int         num_extra_tx    = info->cfg->info[2];
+    EndInfo_t*  results         = &info->end_info;
+    int         score_index;
+    int32_t*    rx_buf;
     int         buf_size;
     
     // first we create a buffer which we are going to use for sending our data
     buf_size        =   16 * (
                         ((query->seq.l + (128/stream_base_w) - 1) / (128/stream_base_w)) +  // query bases
                         ((db->seq.l + (128/stream_base_w) - 1) / (128/stream_base_w))    +  // db bases
-                        1 + 1 + 3);                                                         // query len, target len, 3 extra @ end
-    rx_buf = new int16_t[buf_size/sizeof(int16_t)];
+                        1 + 1 + num_extra_tx);                                              // query len, target len, extra @ end
+    rx_buf          = new int32_t[buf_size/sizeof(int32_t)];
+    score_index     = (buf_size/sizeof(rx_buf[0])) - 10;
     memset(rx_buf,0,buf_size/sizeof(rx_buf[0]));
     
     // send the contents of the transmit buffer to the FPGA
     if (VERBOSE) printf("Reading %i B from stream handle %i\n", buf_size, info->stream);
     err = info->pico->ReadStream(info->stream, rx_buf, buf_size);
 
-    // pick out the score that we want to return
-    if (err >= 0) err = (int) rx_buf[1];
+    // rip through the received scores
+    if (VERBOSE) for (int i=score_index; i<buf_size/sizeof(rx_buf[0]); ++i) printf("%i: 0x%X\n", i, rx_buf[i]);
+
+    // pick out the local and global score info
+    if (VERBOSE) printf("Reading scores from index %i\n", score_index);
+    results->localScore         = (int16_t) rx_buf[1];
+    results->localQueryBase     = (int)     rx_buf[score_index];    score_index += 2;
+    results->localTargetBase    = (int)     rx_buf[score_index];    score_index += 2;
+    results->globalTargetBase   = (int)     rx_buf[score_index];    score_index += 2;
+    results->globalScore        = (int16_t) rx_buf[score_index];
 
     // even if we had an error, we better clean up our allocated memory
     delete [] rx_buf;
@@ -239,6 +264,9 @@ int main(int argc, char* argv[]) {
 	// kseq pointers for parsing FASTA files
 	kseq_t*         querySeq;
 	kseq_t*         dbSeq;
+
+    // alignment score
+    int             score;
 
     // info that we need to create different threads
     // 1 thread used to send the query to the FPGA
@@ -285,7 +313,7 @@ int main(int argc, char* argv[]) {
 
     // create the streams to talk to the separate alignment units
     // also, populate the StreamInfo structs w/ the info that we know so far
-    for (int i=1; i<=cfg.info[7]; ++i){
+    for (int i=1; i<=cfg.info[8]; ++i){
         if (VERBOSE) printf("Creating stream %i\n", i);
         if ((err = aligner->CreateStream(i)) < 0){
 		    fprintf(stderr, "CreateStream error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
@@ -301,7 +329,7 @@ int main(int argc, char* argv[]) {
     // SCORING MATRIX //
     ////////////////////
 	
-    if ((err = WriteScoringMatrix(aligner, args.getScoreMatrix())) < 0){
+    if ((err = WriteScoringMatrix(aligner, args.getScoreMatrix(), &cfg)) < 0){
 		fprintf(stderr, "WriteScoringMatrix error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
 		return EXIT_FAILURE;
     }
@@ -362,7 +390,9 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "ReceiveScore error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
         return EXIT_FAILURE;
     }
-    printf("Alignment score = %i\n", err);
+    printf("Alignment score = %i at base %i\n", 
+            query_db_info[0].end_info.globalScore,
+            query_db_info[0].end_info.globalTargetBase);
     
     /////////////
     // CLEANUP //

@@ -31,7 +31,7 @@
 *                 info).
 *
 * Assumptions   : 1) T_POS_W <= 16
-*                 2) SCORE_W <= (128-16)
+*                 2) SCORE_W <= (INT_STREAM_W-16)
 *
 * Copyright 2011 Pico Computing, Inc.
 */

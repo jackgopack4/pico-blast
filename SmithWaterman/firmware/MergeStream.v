@@ -79,6 +79,7 @@
 *
 * Copyright     : 2013, Pico Computing, Inc.
 */
+`include "PicoDefines.v"
 module MergeStream #(
     parameter NAME                      = "",           // name of this module
     parameter VERBOSE                   = 1,            // set to 1 for verbose debugging statements in simulation
@@ -580,7 +581,17 @@ module MergeStream #(
         end else if (loadData) begin
             s1o_valid               <= next_s1o_valid;
             s1o_data                <= next_s1o_data;
-            if (VERBOSE && next_s1o_valid) $display("%t : %s : loading data [%0d] into output buffer for stream 1 = 0x%h", $realtime, NAME, s1o_count, next_s1o_data);
+            if (VERBOSE && next_s1o_valid) begin
+`ifdef ASCII_INPUT_DATA
+                if (state == DATA_Q || state == DATA_T) begin
+                    $display("%t : %s : loading data [%0d] into output buffer for stream 1 = 0x%s", $realtime, NAME, s1o_count, next_s1o_data);
+                end else begin
+                    $display("%t : %s : loading data [%0d] into output buffer for stream 1 = 0x%h", $realtime, NAME, s1o_count, next_s1o_data);
+                end
+`else
+                $display("%t : %s : loading data [%0d] into output buffer for stream 1 = 0x%h", $realtime, NAME, s1o_count, next_s1o_data);
+`endif
+            end            
         end else if (s1o_rdy) begin
             s1o_data                <= 'hX;
             s1o_valid               <= 0;
@@ -605,18 +616,18 @@ module MergeStream #(
         end else begin
             // 1) count the number of transactions accepted from the input stream 1
             if (s1i_valid && s1i_rdy) begin
-                if (VERBOSE) $display("%t : %s : receiving data [%0d] from input stream 1 = 0x%h", $realtime, NAME, s1i_count, s1i_data);
+                //if (VERBOSE) $display("%t : %s : receiving data [%0d] from input stream 1 = 0x%h", $realtime, NAME, s1i_count, s1i_data);
                 s1i_count           <= s1i_count + 1;
             end
             // 2) count the number of transactions accepted from the input stream 2
             if (s2i_valid && s2i_rdy) begin
-                if (VERBOSE) $display("%t : %s : receiving data [%0d] from input stream 2 = 0x%h", $realtime, NAME, s2i_count, s2i_data);
+                //if (VERBOSE) $display("%t : %s : receiving data [%0d] from input stream 2 = 0x%h", $realtime, NAME, s2i_count, s2i_data);
                 s2i_count           <= s2i_count + 1;
             end
             // 3) count the number of transfers sent to output stream 1
             if (s1o_valid && s1o_rdy) begin
                 s1o_count           <= s1o_count + 1;
-                if (VERBOSE) $display("%t : %s : sending data [%0d] to output stream 1 = 0x%h", $realtime, NAME, s1o_count, s1o_data);
+                //if (VERBOSE) $display("%t : %s : sending data [%0d] to output stream 1 = 0x%h", $realtime, NAME, s1o_count, s1o_data);
             end
         end
         // 4) output some status signals

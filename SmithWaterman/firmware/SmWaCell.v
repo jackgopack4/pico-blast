@@ -126,7 +126,7 @@ module SmWaCell #(
     wire                [BASE_W-1:0]    target = targetIn;
                                                         // the target base being compared
 
-    reg                 [SCORE_W-1:0]   h_diag;         // 1 cycle delayed similarity score from the
+    reg         signed  [SCORE_W-1:0]   h_diag;         // 1 cycle delayed similarity score from the
                                                         //  compute unit above this one, which corresponds
                                                         //  to the cell in the 2D array diagonal to the
                                                         //  current cell
@@ -136,6 +136,9 @@ module SmWaCell #(
     wire        signed  [SCORE_W-1:0]   sub;            // match/substitution score computed based upon the current query/target bases
 
     reg         signed  [SCORE_W-1:0]   next_h;         // next value for the similarity score
+    
+    reg         signed  [SCORE_W-1:0]   match_score;    // h_diag + sub
+    reg         signed  [SCORE_W-1:0]   max_gap;        // max(e,f)
     
 `ifdef  USE_AFFINE_GAP
     // e score from the cell to the left of this one in the 2D scoring matrix
@@ -217,18 +220,20 @@ module SmWaCell #(
     
     // compute the next similarity score
     always @ (*) begin
+        match_score             = h_diag + sub;
+`ifdef  USE_AFFINE_GAP
+        // if we are using Affine-gap scoring, then e_in = E[i,j] and f_in
+        // = F[i,j]
+        max_gap                 = max(e_in, f_in);
+`else   // !USE_AFFINE_GAP
+        // else we rely upon the newly computed F[i,j] and E[i,j] gap open
+        // scores
+        max_gap                 = max(next_e, next_f);
+`endif  // USE_AFFINE_GAP
         if (!queryEn) begin
             next_h              = h_in;
         end else begin
-`ifdef  USE_AFFINE_GAP
-            // if we are using Affine-gap scoring, then e_in = E[i,j] and f_in
-            // = F[i,j]
-            next_h              = max(h_diag+sub, max(e_in, f_in));
-`else   // !USE_AFFINE_GAP
-            // else we rely upon the newly computed F[i,j] and E[i,j] gap open
-            // scores
-            next_h              = max(h_diag+sub, max(next_e, next_f));
-`endif  // USE_AFFINE_GAP
+            next_h              = max(match_score, max_gap);
         end
     end
 
@@ -284,8 +289,7 @@ module SmWaCell #(
             // the next clock cycle. therefore, we should compute E[i,0], so
             // it can be used as E[i,j] when computing H[i,j] in the next
             // clock cycle
-            // TODO: figure out how we should initialize stuff for E
-            e_out               <= 0;
+            e_out               <= extend_f;
         end else if (enable) begin
             e_out               <= next_e;
         end
@@ -298,8 +302,7 @@ module SmWaCell #(
             // the next clock cycle. therefore, we should compute F[i,0], so
             // it can be used as F[i,j] when computing H[i,j] in the next
             // clock cycle
-            // TODO: figure out how we should initialize stuff for F
-            f_out               <= 0;
+            f_out               <= extend_f;
         end else if (enable) begin
             f_out               <= next_f;
         end
