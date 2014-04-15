@@ -118,6 +118,91 @@
 *                 6) we must instantiate at least 1 SmWaWrapper module
 *                 7) SCORE_W <= INT_STREAM_W - 16
 *
+* Defines       : This section lists some of the defines that are supported by
+*                 this system as the impact that they have on the consumed
+*                 resources.  Note that these defines should be placed in your
+*                 PicoDefines.v file:
+*
+*                 Required:
+*                 
+*                 -SW_UNITS_X
+*                 Use this define to instantiate X Smith-Waterman compute 
+*                 cells in your system.  Each compute cell requires 1 input 
+*                 stream and 1 output stream, so you must also define those 
+*                 stream widths.  The stream numbers start at 1.  We support
+*                 1 <= X <= 10.
+*                 
+*                 Optional:
+*                 
+*                 -USE_LOCAL_ALIGNMENT
+*                 Users should define this if they want to do true Smith-
+*                 Waterman alignment, which is local alignment.  Otherwise, we
+*                 will do true Needleman-Wunsch alignment, which is global
+*                 query to global target alignment.  Note that we default to
+*                 global alignment.
+*                 
+*                 -USE_AFFINE_GAP
+*                 If this is defined, we will use an affine-gap scoring
+*                 scheme, which allows for a lower gap penalty when extending
+*                 a gap.  The default is to not use the affine-gap scheme.
+*                 Note that if this is defined, it roughly triples the
+*                 resources required for the system.
+*                 
+*                 -STREAM_BASE_WIDTH
+*                 This is the width of a single base (nucleotide) on the
+*                 streams to and from the FPGA. The default value is 2.  Note
+*                 that we assume that the data on the stream is binary data
+*                 (not ASCII data), unless otherwise specified.
+*                 
+*                 -INT_BASE_WIDTH
+*                 This is the width of a single base (nucleotide) in the
+*                 internal systems.  Note that this is a compressed
+*                 representation of a base.  We default to 2 bits per base.
+*                 The required resources impact due to this is O(N).
+*                 
+*                 -ASCII_INPUT_DATA
+*                 This define specifies that we are streaming plain text data
+*                 on the input and output streams for both the query and the
+*                 target sequences.  Note that if this define is set, we
+*                 automatically define STREAM_BASE_WIDTH to 8.
+*                 
+*                 -MAX_QUERY_LENGTH
+*                 This is the maximum query length that this system is
+*                 designed to support.  The query length has a linear impact
+*                 upon the amount of resources required by this system.  The
+*                 default value is 100.  Note that queries can still be
+*                 aligned if they are shorter than this value.  Queries longer
+*                 than this value cannot be properly aligned by this system.
+*                 
+*                 -MAX_TARGET_LENGTH
+*                 This is length of the longest target/reference/db sequence
+*                 that we can align with this system.  The target length has
+*                 an O(log N) impact upon the resources consumed by this
+*                 system.  The default value is 100.  Note that targets that
+*                 are shorter than this value can still be aligned properly.
+*                 
+*                 -MAX_GAP_OPEN
+*                 This is an upper bound for the magnitude of the gap open
+*                 score that can be user-specified (i.e. abs(max(gapOpen))).
+*                 Note that users can still specify gap open scores that are
+*                 smaller in magnitude than this value.
+*                 
+*                 -MAX_GAP_EXTEND
+*                 This is an upper bound for the magnitude of the gap extend
+*                 score that can be user-specified (i.e. abs(max(gapExtend))).
+*                 Note that users can still specify gap extend scores that are
+*                 smaller in magnitude than this value.  The effect upon the
+*                 resources used in the system is roughly O(log N).
+*                 
+*                 -SCORE_W
+*                 This is the number of bits used in the system to track the
+*                 current signed alignment score.  Each Smith-Waterman cell 
+*                 stores 3 scores of this width, so the resource usage is
+*                 roughly O(log N).  Note that we automatically compute this
+*                 value (from MAX_QUERY_LENGTH, MAX_TARGET_LENGTH,
+*                 MAX_GAP_OPEN, and MAX_GAP_EXTEND), but this can also be
+*                 overridden with this define.
+*
 * Copyright     : 2013, Pico Computing, Inc.
 */
 `include "PicoDefines.v"

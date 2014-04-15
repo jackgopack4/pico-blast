@@ -259,6 +259,10 @@ module MergeStream #(
     // the query
     reg                             doTarget=0;
 
+    // this is just a temporary variable that we use to compute and then
+    // sign-extend the new score
+    reg     [SCORE_W-1:0]           score;
+
     /////////
     // FSM //
     /////////
@@ -291,6 +295,7 @@ module MergeStream #(
         doTarget        = 0;
         loadInfo        = 0;
         loadData        = 0;
+        score           = 'hX;
         next_s1o_data   = 'hX;
         next_s1o_valid  = 0;
         s1i_rdy         = 0;
@@ -326,11 +331,11 @@ module MergeStream #(
 
                 // this is the new header that we are forming for the output
                 // stream
-                next_s1o_data       = {GetScore(s1i_data,1),
-                                        {(16-MAX_POS_W){1'b0}},
-                                        nextLength_1};
+                score               = GetScore(s1i_data,1);
                 next_s1o_valid      = 1;
-
+                next_s1o_data[31:16]= {{(16-SCORE_W){score[SCORE_W-1]}},score};
+                next_s1o_data[15:0] = nextLength_1;
+                
                 // now send the query header to the output stream
                 if (s2i_rdy) begin
                     loadData        = 1;
@@ -525,9 +530,12 @@ module MergeStream #(
                 // we take the _max_off parameter from the sideband fifo and we
                 // insert the global alignment score for this transfer to the
                 // output stream
-                next_s1o_data       = { s2i_data[127:64],
-                                        GetScore(s1i_data,0)};
+                // Note: assume the score should be 16 bits on the output
+                // stream
+                score               = GetScore(s1i_data,0);
                 next_s1o_valid      = s2i_valid;
+                next_s1o_data[127:16]= s2i_data[127:16];
+                next_s1o_data[15:0] = {{(16-SCORE_W){score[SCORE_W-1]}},score};
 
                 // send the data to the output stream by asserting loadData
                 if (s2i_rdy) begin

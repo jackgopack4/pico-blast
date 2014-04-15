@@ -457,7 +457,9 @@ module SystolicArray #(
             bestScoreJ      <= 0;
             targetBase      <= 0;
         end else begin
-            targetBase      <= targetBase + 1;
+            if (enable) begin
+                targetBase  <= targetBase + 1;
+            end
             // give priority to earlier alignments
             if ($signed(h[MAX_QUERY_LEN]) > bestScore) begin
                 bestScore   <= h        [MAX_QUERY_LEN];

@@ -25,7 +25,7 @@
 #include "PicoSW.h"
 
 // turn this define on to enable VERBOSE debug printing
-#define VERBOSE                 true
+#define VERBOSE                 false
 
 ///////////////
 // FUNCTIONS //
@@ -230,7 +230,7 @@ int ReceiveScore(StreamInfo_t* info){
     err = info->pico->ReadStream(info->stream, rx_buf, buf_size);
 
     // rip through the received scores
-    if (VERBOSE) for (int i=score_index; i<buf_size/sizeof(rx_buf[0]); ++i) printf("%i: 0x%X\n", i, rx_buf[i]);
+    //if (VERBOSE) for (int i=score_index; i<buf_size/sizeof(rx_buf[0]); ++i) printf("%i: 0x%X\n", i, rx_buf[i]);
 
     // pick out the local and global score info
     if (VERBOSE) printf("Reading scores from index %i\n", score_index);

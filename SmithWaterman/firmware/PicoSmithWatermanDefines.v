@@ -83,3 +83,9 @@
     `define SW_UNITS_1
     `define NUM_SW_UNITS    1
 `endif  // SW_UNITS_10
+
+// if ASCII_INPUT_DATA is defined, then the stream width must be exactly
+// 8 bits per base, so we override that define here
+`ifdef ASCII_INPUT_DATA
+    `define STREAM_BASE_WIDTH   8
+`endif
