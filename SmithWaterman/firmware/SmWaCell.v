@@ -42,7 +42,7 @@
 *
 * Copyright     : 2013, Pico Computing, Inc.
 */
-//`include "PicoDefines.v"
+`include "PicoDefines.v"
 module SmWaCell #(
     parameter NAME                  = "",                   // name of this module
     parameter VERBOSE               = 0,                    // set to 1 for verbose debugging statements in simulation
