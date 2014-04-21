@@ -42,7 +42,7 @@
 *
 * Copyright     : 2013, Pico Computing, Inc.
 */
-`include "PicoDefines.v"
+//`include "PicoDefines.v"
 module SmWaCell #(
     parameter NAME                  = "",                   // name of this module
     parameter VERBOSE               = 0,                    // set to 1 for verbose debugging statements in simulation
@@ -92,6 +92,12 @@ module SmWaCell #(
                                                         // because it gets reused by this systolic cell in the next clock cycle
 `endif  // USE_AFFINE_GAP
 
+    output  reg         [1:0]           traceback_out,      // traceback directionality, inicates the direction from which the max
+                                                        //  score originated.
+                                                        //    1:  E scoring chosen
+                                                        //    2:  F scoring chosen
+                                                        //    3:  H scoring chosen
+ 
 `ifdef  USE_LOCAL_ALIGNMENT
     input       signed  [SCORE_W-1:0]   h_max_in,       // local maximum score from the cell above this one
     input       signed  [Q_POS_W-1:0]   h_max_i_in,     // query index of the systolic cell with the max score
@@ -136,6 +142,8 @@ module SmWaCell #(
     wire        signed  [SCORE_W-1:0]   sub;            // match/substitution score computed based upon the current query/target bases
 
     reg         signed  [SCORE_W-1:0]   next_h;         // next value for the similarity score
+
+    reg                         [1:0]   next_traceback; // next value for traceback directionality
     
     reg         signed  [SCORE_W-1:0]   match_score;    // h_diag + sub
     reg         signed  [SCORE_W-1:0]   max_gap;        // max(e,f)
@@ -225,15 +233,21 @@ module SmWaCell #(
         // if we are using Affine-gap scoring, then e_in = E[i,j] and f_in
         // = F[i,j]
         max_gap                 = max(e_in, f_in);
+        next_traceback = (e_in > f_in)? 1: 2;
+       
 `else   // !USE_AFFINE_GAP
         // else we rely upon the newly computed F[i,j] and E[i,j] gap open
         // scores
         max_gap                 = max(next_e, next_f);
+        next_traceback = (next_e < next_f)? 2: 1;
+
 `endif  // USE_AFFINE_GAP
         if (!queryEn) begin
             next_h              = h_in;
+            next_traceback = 3;
         end else begin
             next_h              = max(match_score, max_gap);
+            next_traceback = (match_score < max_gap)? next_traceback: 3;
         end
     end
 
@@ -347,6 +361,7 @@ module SmWaCell #(
             // a new target means we are going to see base 0 of the target in
             // the next clock cycle. therefore, we should compute H[i,-1], so
             // it can be used as h_left in the next cycle
+            traceback_out <= 0;
 `ifdef USE_AFFINE_GAP
     `ifdef  USE_LOCAL_ALIGNMENT
             // INDEX=0 corresponds to base[0] of the query
@@ -371,6 +386,7 @@ module SmWaCell #(
 `endif  // USE_AFFINE_GAP
         end else if (enable) begin
             h_out               <= next_h;
+            traceback_out       <= next_traceback;
         end
     end
 
