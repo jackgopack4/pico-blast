@@ -92,7 +92,7 @@ module SmWaCell #(
                                                         // because it gets reused by this systolic cell in the next clock cycle
 `endif  // USE_AFFINE_GAP
 
-    output  reg         [1:0]           traceback_out,      // traceback directionality, inicates the direction from which the max
+    output  reg         [1:0]           traceback_out=0,// traceback directionality, inicates the direction from which the max
                                                         //  score originated.
                                                         //    1:  E scoring chosen
                                                         //    2:  F scoring chosen
@@ -361,7 +361,6 @@ module SmWaCell #(
             // a new target means we are going to see base 0 of the target in
             // the next clock cycle. therefore, we should compute H[i,-1], so
             // it can be used as h_left in the next cycle
-            traceback_out <= 0;
 `ifdef USE_AFFINE_GAP
     `ifdef  USE_LOCAL_ALIGNMENT
             // INDEX=0 corresponds to base[0] of the query
@@ -386,8 +385,16 @@ module SmWaCell #(
 `endif  // USE_AFFINE_GAP
         end else if (enable) begin
             h_out               <= next_h;
-            traceback_out       <= next_traceback;
         end
+
+       ///////////////
+       // TRACEBACK //
+       ///////////////
+       if (newTargetIn) begin
+	  traceback_out <= 0;
+       end else if (enable) begin
+	  traceback_out <= next_traceback;
+       end
     end
 
     ///////////

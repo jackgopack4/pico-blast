@@ -101,57 +101,62 @@ module SystolicArray #(
     parameter PICOBUS_ADDR              = 0
 )
 (
-    input                               clk, 
-    input                               rst,
+    input 		       clk, 
+    input 		       rst,
     
     // Scoring Matrix, which is set via the PicoBus
     // Note: these should be signed 2's complement numbers
-    input       signed  [SCORE_W-1:0]   match,          // positive score for a match
-    input       signed  [SCORE_W-1:0]   mismatch,       // negative score for a mismatch
-    input       signed  [SCORE_W-1:0]   gapOpen,        // negative score for opening a gap
-`ifdef  USE_AFFINE_GAP
-    input       signed  [SCORE_W-1:0]   gapExtend,      // negative score for extending a gap
-`endif  // USE_AFFINE_GAP
+    input signed [SCORE_W-1:0] match, // positive score for a match
+    input signed [SCORE_W-1:0] mismatch, // negative score for a mismatch
+    input signed [SCORE_W-1:0] gapOpen, // negative score for opening a gap
+`ifdef USE_AFFINE_GAP
+    input signed [SCORE_W-1:0] gapExtend, // negative score for extending a gap
+`endif // USE_AFFINE_GAP
 
     // Note: this query gets zipper-loaded into the systolic array at the
     // start of every target
-    input               [MAX_QUERY_W-1:0]   queryIn,    // actual query data (placed in registers)
-    input               [MAX_QUERY_LEN-1:0] queryInEn,  // enable bit for each base of the input query
-    output              [MAX_QUERY_LEN-1:0] queryInReady,
+    input [MAX_QUERY_W-1:0]    queryIn, // actual query data (placed in registers)
+    input [MAX_QUERY_LEN-1:0]  queryInEn, // enable bit for each base of the input query
+    output [MAX_QUERY_LEN-1:0] queryInReady,
                                                         // input query and enable bits should be held stable
                                                         // from the assertion of the targetInStart signal 
                                                         // until this signal is asserted
     
     // Note: this target base gets shifed through the entire array
-    input               [BASE_W-1:0]    targetIn,       // base of target data shifted through array
-    input                               targetInStart,  // asserted 1 cycle before the first valid target base
-    input                               targetInLast,   // asserted with the last valid base of a target
-    input                               targetInValid,  // input target base is valid when this is asserted
-    input               [SCORE_W-1:0]   targetInScore,  // score for the query-target pair alignment preceding this section of the query and target
+    input [BASE_W-1:0] 	       targetIn, // base of target data shifted through array
+    input 		       targetInStart, // asserted 1 cycle before the first valid target base
+    input 		       targetInLast, // asserted with the last valid base of a target
+    input 		       targetInValid, // input target base is valid when this is asserted
+    input [SCORE_W-1:0]        targetInScore, // score for the query-target pair alignment preceding this section of the query and target
 
     // local alignment
 `ifdef  USE_LOCAL_ALIGNMENT
-    output reg          [SCORE_W-1:0]   localScore=0,   // local alignment score = best H score found in the array
-    output reg          [Q_POS_W-1:0]   localScoreI=0,  // query index of the local alignment
-    output reg          [T_POS_W-1:0]   localScoreJ=0,  // target index of the local alignment
-`endif  // USE_LOCAL_ALIGNMENT
+    output reg [SCORE_W-1:0]   localScore=0, // local alignment score = best H score found in the array
+    output reg [Q_POS_W-1:0]   localScoreI=0, // query index of the local alignment
+    output reg [T_POS_W-1:0]   localScoreJ=0, // target index of the local alignment
+`endif // USE_LOCAL_ALIGNMENT
 
     // global alignment
-    output reg          [SCORE_W-1:0]   Score=0,        // global alignment score
-    output reg          [T_POS_W-1:0]   ScoreJ=0,       // target index for the best global alignment
+    output reg [SCORE_W-1:0]   Score=0, // global alignment score
+    output reg [T_POS_W-1:0]   ScoreJ=0, // target index for the best global alignment
                                                         // Note: this is the index of the last base of 
                                                         // the target that aligned to the query
-    output reg                          ScoreValid=0,   // both global and local scores are valid when this is asserted
-    input                               ScoreReady,     // output is ready to accept another score when this is asserted
+    output reg 		       ScoreValid=0, // both global and local scores are valid when this is asserted
+    input 		       ScoreReady, // output is ready to accept another score when this is asserted
+
+    // traceback
+    output [127:0] 	       TracebackData, // global alignment score
+    output reg		       TracebackValid, // both global and local scores are valid when this is asserted
+    input 		       TracebackReady, // output is ready to accept another score when this is asserted
     
     // These are the standard PicoBus signals that we'll use to communicate with the rest of the system.
-    input                               PicoClk, 
-    input                               PicoRst,
-    input   [31:0]                      PicoAddr,
-    input   [31:0]                      PicoDataIn, 
-    input                               PicoRd, 
-    input                               PicoWr,
-    output reg  [31:0]                  PicoDataOut
+    input 		       PicoClk, 
+    input 		       PicoRst,
+    input [31:0] 	       PicoAddr,
+    input [31:0] 	       PicoDataIn, 
+    input 		       PicoRd, 
+    input 		       PicoWr,
+    output reg [31:0] 	       PicoDataOut
 );
     
     ///////////////
@@ -437,7 +442,8 @@ module SystolicArray #(
 `endif  // USE_LOCAL_ALIGNMENT
             
             .h_in           (h              [c]),
-            .h_out          (h              [c+1])
+            .h_out          (h              [c+1]),
+            .traceback_out  (TracebackData [2*c+1:2*c])
         );
     end endgenerate
 
@@ -526,6 +532,19 @@ module SystolicArray #(
         end
     end
 
+   
+   // Traceback data will be valid 
+   always @(posedge clk) begin
+       if (rst) begin
+	  TracebackValid <= 0;
+       end else if (enable) begin
+	  TracebackValid <= 1;
+       end else begin
+	  TracebackValid <= 0;
+       end
+    end
+   
+   
     ///////////
     // DEBUG //
     ///////////

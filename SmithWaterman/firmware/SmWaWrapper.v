@@ -67,32 +67,37 @@ module SmWaWrapper #(
 (
     // this is the slower clock that is used to drive the Smith-Waterman
     // systolic arrays
-    input                               clkSmWa,
-    input                               rstSmWa,
+    input 			clkSmWa,
+    input 			rstSmWa,
 
     // The clk and rst signals are shared between all the streams in this module,
     //   which are: stream #1 in, and stream #1 out.
-    input                               clk,
-    input                               rst,
+    input 			clk,
+    input 			rst,
     
     // These are the signals for stream #1 INto the firmware.
-    input                               s1i_valid,
-    output                              s1i_rdy,
-    input   [STREAM_W-1:0]              s1i_data,
+    input 			s1i_valid,
+    output 			s1i_rdy,
+    input [STREAM_W-1:0] 	s1i_data,
     
     // These are the signals for stream #1 OUT of the firmware.
-    output                              s1o_valid,
-    input                               s1o_rdy,
-    output  [SCORE_STREAM_W-1:0]        s1o_data,
+    output 			s1o_valid,
+    input 			s1o_rdy,
+    output [SCORE_STREAM_W-1:0] s1o_data,
+
+     // These are the signals for stream #1 OUT of the firmware.
+    output 			s2o_valid,
+    input 			s2o_rdy,
+    output [127:0] 		s2o_data,
 
     // These are the standard PicoBus signals that we'll use to communicate with the rest of the system.
-    input                               PicoClk, 
-    input                               PicoRst,
-    input  [31:0]                       PicoAddr,
-    input  [31:0]                       PicoDataIn, 
-    input                               PicoRd, 
-    input                               PicoWr,
-    output [31:0]                       PicoDataOut
+    input 			PicoClk, 
+    input 			PicoRst,
+    input [31:0] 		PicoAddr,
+    input [31:0] 		PicoDataIn, 
+    input 			PicoRd, 
+    input 			PicoWr,
+    output [31:0] 		PicoDataOut
 );
 
     ///////////////
@@ -230,6 +235,11 @@ module SmWaWrapper #(
         .score_valid                    (s1o_valid),
         .score_ready                    (s1o_rdy),
         .score_data                     (s1o_data),
+
+        // traceback output stream
+        .traceback_valid                    (s2o_valid),
+        .traceback_ready                    (s2o_rdy),
+        .traceback_data                     (s2o_data),
 
         // affine-gap score inputs
         .match                          (match),

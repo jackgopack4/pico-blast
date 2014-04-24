@@ -215,145 +215,151 @@ module PicoSmithWaterman #(
 )
 (
     // The clk and rst signals are shared between all the streams in this module
-    input                               clk,
-    input                               rst,
+    input 			     clk,
+    input 			     rst,
 
     ///////////////////
     // SmWaWrapper 1 //
     ///////////////////
-    input                               s1i_valid,
-    output                              s1i_rdy,
-    input   [`STREAM1_IN_WIDTH-1:0]     s1i_data,
+    input 			     s1i_valid,
+    output 			     s1i_rdy,
+    input [`STREAM1_IN_WIDTH-1:0]    s1i_data,
     
-    output                              s1o_valid,
-    input                               s1o_rdy,
-    output  [`STREAM1_OUT_WIDTH-1:0]    s1o_data,
+    output 			     s1o_valid,
+    input 			     s1o_rdy,
+    output [`STREAM1_OUT_WIDTH-1:0]  s1o_data,
+
+    // Traceback output stream (cant have 2 SW units with this)
+    output 			     s2o_valid,
+    input 			     s2o_rdy,
+    output [`STREAM2_OUT_WIDTH-1:0]  s2o_data,
+
 
     ///////////////////
     // SmWaWrapper 2 //
     ///////////////////
 `ifdef  SW_UNITS_2
-    input                               s2i_valid,
-    output                              s2i_rdy,
-    input   [`STREAM2_IN_WIDTH-1:0]     s2i_data,
+    input 			     s2i_valid,
+    output 			     s2i_rdy,
+    input [`STREAM2_IN_WIDTH-1:0]    s2i_data,
     
-    output                              s2o_valid,
-    input                               s2o_rdy,
-    output  [`STREAM2_OUT_WIDTH-1:0]    s2o_data,
+    output 			     s2o_valid,
+    input 			     s2o_rdy,
+    output [`STREAM2_OUT_WIDTH-1:0]  s2o_data,
 `endif  // SW_UNITS_2
 
     ///////////////////
     // SmWaWrapper 3 //
     ///////////////////
 `ifdef  SW_UNITS_3
-    input                               s3i_valid,
-    output                              s3i_rdy,
-    input   [`STREAM3_IN_WIDTH-1:0]     s3i_data,
+    input 			     s3i_valid,
+    output 			     s3i_rdy,
+    input [`STREAM3_IN_WIDTH-1:0]    s3i_data,
     
-    output                              s3o_valid,
-    input                               s3o_rdy,
-    output  [`STREAM3_OUT_WIDTH-1:0]    s3o_data,
+    output 			     s3o_valid,
+    input 			     s3o_rdy,
+    output [`STREAM3_OUT_WIDTH-1:0]  s3o_data,
 `endif  // SW_UNITS_3
 
     ///////////////////
     // SmWaWrapper 4 //
     ///////////////////
 `ifdef  SW_UNITS_4
-    input                               s4i_valid,
-    output                              s4i_rdy,
-    input   [`STREAM4_IN_WIDTH-1:0]     s4i_data,
+    input 			     s4i_valid,
+    output 			     s4i_rdy,
+    input [`STREAM4_IN_WIDTH-1:0]    s4i_data,
     
-    output                              s4o_valid,
-    input                               s4o_rdy,
-    output  [`STREAM4_OUT_WIDTH-1:0]    s4o_data,
+    output 			     s4o_valid,
+    input 			     s4o_rdy,
+    output [`STREAM4_OUT_WIDTH-1:0]  s4o_data,
 `endif  // SW_UNITS_4
 
     ///////////////////
     // SmWaWrapper 5 //
     ///////////////////
 `ifdef  SW_UNITS_5
-    input                               s5i_valid,
-    output                              s5i_rdy,
-    input   [`STREAM5_IN_WIDTH-1:0]     s5i_data,
+    input 			     s5i_valid,
+    output 			     s5i_rdy,
+    input [`STREAM5_IN_WIDTH-1:0]    s5i_data,
     
-    output                              s5o_valid,
-    input                               s5o_rdy,
-    output  [`STREAM5_OUT_WIDTH-1:0]    s5o_data,
+    output 			     s5o_valid,
+    input 			     s5o_rdy,
+    output [`STREAM5_OUT_WIDTH-1:0]  s5o_data,
 `endif  // SW_UNITS_5
 
     ///////////////////
     // SmWaWrapper 6 //
     ///////////////////
 `ifdef  SW_UNITS_6
-    input                               s6i_valid,
-    output                              s6i_rdy,
-    input   [`STREAM6_IN_WIDTH-1:0]     s6i_data,
+    input 			     s6i_valid,
+    output 			     s6i_rdy,
+    input [`STREAM6_IN_WIDTH-1:0]    s6i_data,
     
-    output                              s6o_valid,
-    input                               s6o_rdy,
-    output  [`STREAM6_OUT_WIDTH-1:0]    s6o_data,
+    output 			     s6o_valid,
+    input 			     s6o_rdy,
+    output [`STREAM6_OUT_WIDTH-1:0]  s6o_data,
 `endif  // SW_UNITS_6
 
     ///////////////////
     // SmWaWrapper 7 //
     ///////////////////
 `ifdef  SW_UNITS_7
-    input                               s7i_valid,
-    output                              s7i_rdy,
-    input   [`STREAM7_IN_WIDTH-1:0]     s7i_data,
+    input 			     s7i_valid,
+    output 			     s7i_rdy,
+    input [`STREAM7_IN_WIDTH-1:0]    s7i_data,
     
-    output                              s7o_valid,
-    input                               s7o_rdy,
-    output  [`STREAM7_OUT_WIDTH-1:0]    s7o_data,
+    output 			     s7o_valid,
+    input 			     s7o_rdy,
+    output [`STREAM7_OUT_WIDTH-1:0]  s7o_data,
 `endif  // SW_UNITS_7
 
     ///////////////////
     // SmWaWrapper 8 //
     ///////////////////
 `ifdef  SW_UNITS_8
-    input                               s8i_valid,
-    output                              s8i_rdy,
-    input   [`STREAM8_IN_WIDTH-1:0]     s8i_data,
+    input 			     s8i_valid,
+    output 			     s8i_rdy,
+    input [`STREAM8_IN_WIDTH-1:0]    s8i_data,
     
-    output                              s8o_valid,
-    input                               s8o_rdy,
-    output  [`STREAM8_OUT_WIDTH-1:0]    s8o_data,
+    output 			     s8o_valid,
+    input 			     s8o_rdy,
+    output [`STREAM8_OUT_WIDTH-1:0]  s8o_data,
 `endif  // SW_UNITS_8
 
     ///////////////////
     // SmWaWrapper 9 //
     ///////////////////
 `ifdef  SW_UNITS_9
-    input                               s9i_valid,
-    output                              s9i_rdy,
-    input   [`STREAM9_IN_WIDTH-1:0]     s9i_data,
+    input 			     s9i_valid,
+    output 			     s9i_rdy,
+    input [`STREAM9_IN_WIDTH-1:0]    s9i_data,
     
-    output                              s9o_valid,
-    input                               s9o_rdy,
-    output  [`STREAM9_OUT_WIDTH-1:0]    s9o_data,
+    output 			     s9o_valid,
+    input 			     s9o_rdy,
+    output [`STREAM9_OUT_WIDTH-1:0]  s9o_data,
 `endif  // SW_UNITS_9
 
     ///////////////////
     // SmWaWrapper 10 //
     ///////////////////
 `ifdef  SW_UNITS_10
-    input                               s10i_valid,
-    output                              s10i_rdy,
-    input   [`STREAM10_IN_WIDTH-1:0]    s10i_data,
+    input 			     s10i_valid,
+    output 			     s10i_rdy,
+    input [`STREAM10_IN_WIDTH-1:0]   s10i_data,
     
-    output                              s10o_valid,
-    input                               s10o_rdy,
-    output  [`STREAM10_OUT_WIDTH-1:0]   s10o_data,
+    output 			     s10o_valid,
+    input 			     s10o_rdy,
+    output [`STREAM10_OUT_WIDTH-1:0] s10o_data,
 `endif  // SW_UNITS_10
 
     // These are the standard PicoBus signals that we'll use to communicate with the rest of the system.
-    input                               PicoClk, 
-    input                               PicoRst,
-    input  [31:0]                       PicoAddr,
-    input  [31:0]                       PicoDataIn, 
-    input                               PicoRd, 
-    input                               PicoWr,
-    output reg  [31:0]                  PicoDataOut
+    input 			     PicoClk, 
+    input 			     PicoRst,
+    input [31:0] 		     PicoAddr,
+    input [31:0] 		     PicoDataIn, 
+    input 			     PicoRd, 
+    input 			     PicoWr,
+    output reg [31:0] 		     PicoDataOut
 );
     ////////////////
     // PARAMETERS //
@@ -403,10 +409,15 @@ module PicoSmithWaterman #(
     wire                                so_valid_SmWa   [0:NUM_SW_UNITS-1];
     wire                                so_rdy_SmWa     [0:NUM_SW_UNITS-1];
     wire    [STREAM_W-1:0]              so_data_SmWa    [0:NUM_SW_UNITS-1];
+
+    // this is the traceback data that comes out of the SmWaWrapper module
+    wire 				so_valid_trace;
+    wire 				so_rdy_trace;
+    wire [127:0] 			so_data_trace;
     
     // Output signals
     wire                                so_valid        [0:NUM_SW_UNITS-1];
-    wire                                so_rdy          [0:NUM_SW_UNITS-1];
+    wire                                so_rdy          [0:1];
     wire    [STREAM_W-1:0]              so_data         [0:NUM_SW_UNITS-1];
     
     // actual PicoBus data is this OR'd with PicoBus output data from sub-modules
@@ -433,6 +444,11 @@ module PicoSmithWaterman #(
         assign s1o_valid    = so_valid  [0];
         assign s1o_data     = so_data   [0];
         assign so_rdy   [0] = s1o_rdy;
+
+        assign s2o_valid    = so_valid_trace;
+        assign s2o_data     = so_data_trace;
+        assign so_rdy   [1] = so_rdy_trace;
+   
     `endif  // SW_UNITS_1
     `ifdef  SW_UNITS_2
         assign si_valid [1] = s2i_valid;
@@ -709,6 +725,11 @@ module PicoSmithWaterman #(
             .s1o_valid                  (so_valid_SmWa  [unit]),
             .s1o_rdy                    (so_rdy_SmWa    [unit]),
             .s1o_data                   (so_data_SmWa   [unit]),
+    
+            // output traceback stream
+            .s2o_valid                  (so_valid_trace),
+            .s2o_rdy                    (so_rdy_trace ),
+            .s2o_data                   (so_data_trace),
     
             // PicoBus signals
             .PicoClk                    (PicoClk),
