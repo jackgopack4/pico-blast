@@ -10,12 +10,17 @@
 int main(int argc, char* argv[]) {
     int err, i, j, stream;
     uint32_t buf[1024], results[8192];
+    void * currentResults;
+    BlastOffsetPair * NCBI_RESTRICT offset_pairs; // add offsets
     PicoDrv *pico;
-    char* query, database;
-    char currentDB;
-    int query, database; // length in bytes
+    void* query, database;
     const char* bitFileName = "M501_PicoBus128_HelloWorld.bit";
+    int num_hits;
+    int total_hits = 0;
+    int lut_word_length = 8;
 
+    // allocate 128 bits for currentResults;
+    currentResults = malloc(16);
     // Load bit file here
     bitFileName = argv[1];
     runBitFile(bitFileName, &pico);
@@ -36,8 +41,8 @@ int main(int argc, char* argv[]) {
 
     // get bytes of room available in stream to firmware
     i=pico->GetBytesAvailable(databaseStream, STREAMWRITE);
-    if (i > DATABASELENGTH*8) {
-        i = DATABASELENGTH*8;
+    if (i > DATABASELENGTH*lut_word_length) {
+        i = DATABASELENGTH*lut_word_length;
     }
     // Query and Database will be in same format
     // Empty character followed by two-bit compressed sequence
@@ -53,6 +58,15 @@ int main(int argc, char* argv[]) {
     pico->WriteStream(databaseStream, database, i);     
     // Close stream when done
     pico->CloseStream(databaseStream);
+
+    // process results as they return
+    // while current result is inside database
+    pico -> ReadStream(resultStream,currentResults,16); 
+    // calculate absolute index of current offset pairs
+    // query index = index value
+    // database index = index value + database counter
+    offset_pairs[j]->q_off = queryIndex;
+    offset_pairs[j]->s_off = queryIndex + databaseCounter;
 
     // Return results
     i = pico->GetBytesAvailable(resultStream,STREAMREAD);
