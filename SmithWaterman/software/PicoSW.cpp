@@ -252,10 +252,6 @@ void * traceback(void* arg){
     int         err;
     kseq_t*     query           = info->start_info.query_seq;
     kseq_t*     db              = info->start_info.db_seq;
-    int         stream_base_w   = info->cfg->info[13];
-    int         num_extra_tx    = info->cfg->info[2];
-    EndInfo_t*  results         = &info->end_info;
-    int         score_index;
     uint64_t*    rx_buf;
     int         buf_size;
     
@@ -438,6 +434,7 @@ int main(int argc, char* argv[]) {
             query_db_info[0].end_info.globalScore,
             query_db_info[0].end_info.globalTargetBase);
 
+    // Wait for traceback thread to finish reading
     if ((err = pthread_join(traceback_thread, NULL)) != 0){
       fprintf(stderr, "Thread join error: %d\n", err);
       return EXIT_FAILURE;
