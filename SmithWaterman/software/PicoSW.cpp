@@ -245,6 +245,34 @@ int ReceiveScore(StreamInfo_t* info){
     return err;
 }
 
+void * traceback(void* arg){
+
+    StreamInfo_t *info = (StreamInfo_t *)arg;
+
+    int         err;
+    kseq_t*     query           = info->start_info.query_seq;
+    kseq_t*     db              = info->start_info.db_seq;
+    int         stream_base_w   = info->cfg->info[13];
+    int         num_extra_tx    = info->cfg->info[2];
+    EndInfo_t*  results         = &info->end_info;
+    int         score_index;
+    uint64_t*    rx_buf;
+    int         buf_size;
+    
+    // first we create a buffer which we are going to use for receiving our data
+    buf_size        =   16 * (
+                         query->seq.l +  // query length
+			 db->seq.l - 1);   // db length
+    rx_buf          = new uint64_t[buf_size/sizeof(uint64_t)];
+    memset(rx_buf,0,buf_size/sizeof(rx_buf[0]));
+    
+    // receive the contents of buffer from the FPGA
+    if (VERBOSE) printf("Reading %i B from stream handle %i\n", buf_size, info->traceback_stream);
+    err = info->pico->ReadStream(info->traceback_stream, rx_buf, buf_size);
+
+    info->traceback_buffer = rx_buf;
+}
+
 //////////
 // MAIN //
 //////////
@@ -383,6 +411,22 @@ int main(int argc, char* argv[]) {
     // RECEIVE RESULT FROM OUTPUT //
     ////////////////////////////////
     
+    // Create traceback stream
+    if ((err = aligner->CreateStream(2)) < 0){
+      fprintf(stderr, "CreateStream error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
+      return EXIT_FAILURE;
+    }
+    query_db_info[0].traceback_stream = err;
+
+    // Create thread to read traceback stream into buffer
+    pthread_t traceback_thread;
+    uint64_t *traceback_buffer;
+    err = pthread_create(&traceback_thread, NULL, traceback, (void *) &query_db_info[0]);
+    if (err != 0){
+      fprintf(stderr, "Thread creation error: %d\n", err);
+      return EXIT_FAILURE;
+    }
+
     // this just returns the score
     // we can add a LOT more functionality here if we want
     printf("Reading the resulting score from the FPGA\n");
@@ -393,6 +437,11 @@ int main(int argc, char* argv[]) {
     printf("Alignment score = %i at base %i\n", 
             query_db_info[0].end_info.globalScore,
             query_db_info[0].end_info.globalTargetBase);
+
+    if ((err = pthread_join(traceback_thread, NULL)) != 0){
+      fprintf(stderr, "Thread join error: %d\n", err);
+      return EXIT_FAILURE;
+    }
     
     /////////////
     // CLEANUP //

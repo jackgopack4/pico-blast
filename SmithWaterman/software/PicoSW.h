@@ -88,9 +88,11 @@ typedef struct StreamInfo {
     pthread_t       thread;
     PicoDrv*        pico;
     int             stream;
+    int             traceback_stream;
     fpga_cfg_t*     cfg;
     StartInfo_t     start_info;
     EndInfo_t       end_info;
+    uint64_t*       traceback_buffer;
 } StreamInfo_t;
 
 ///////////////
@@ -149,5 +151,7 @@ int AlignQueryToDB(StreamInfo_t* info);
  * For now, this function only returns a score, but we have a LOT more data available if desired.
  */
 int ReceiveScore(StreamInfo_t* info);
+
+void *ReceiveTraceback(StreamInfo_t* info);
 
 #endif /* PICOSW_H_ */
