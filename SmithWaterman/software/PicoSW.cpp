@@ -256,10 +256,8 @@ void * traceback(void* arg){
     int         buf_size;
     
     // first we create a buffer which we are going to use for receiving our data
-    buf_size        =   16 * (
-                         query->seq.l +  // query length
-			 db->seq.l - 1);   // db length
-    rx_buf          = new uint64_t[buf_size/sizeof(uint64_t)];
+    buf_size        =   db->seq.l * 2;   // db length
+    rx_buf          = new uint64_t[buf_size];
     memset(rx_buf,0,buf_size/sizeof(rx_buf[0]));
     
     // receive the contents of buffer from the FPGA
