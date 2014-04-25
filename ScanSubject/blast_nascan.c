@@ -31,12 +31,11 @@
 #include <algo/blast/core/blast_nalookup.h>
 #include <algo/blast/core/blast_nascan.h>
 #include <algo/blast/core/blast_util.h> /* for NCBI2NA_UNPACK_BASE */
-#include <algo/blast/core/ScanSubject.h> /* for Pico integration */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <picodrv.h>
-#include <pico_errors.h>
+#include "picodrv.h"
+#include "pico_errors.h"
 #define WRITESTREAM false
 #define READSTREAM true
 #define COMPRESSION 4
@@ -46,7 +45,7 @@ static char const rcsid[] =
     "$Id: blast_nascan.c 272713 2011-04-11 14:49:23Z camacho $";
 #endif                          /* SKIP_DOXYGEN_PROCESSING */
 
-const BlastSequenceBlk* searchQuery;
+const BLAST_SequenceBlk* searchQuery;
 
 /**
 * Retrieve the number of query offsets associated with this subject word.
@@ -120,11 +119,12 @@ static Int4 s_BlastNaScanSubject_8_4(const LookupTableWrap * lookup_wrap,
   Int4 total_hits = 0;
   Int4 word_length = 8;
 
-  int err;
+  PicoDrv *pico;
+  int err, i, j, stream;
+  char ibuf[1024];
   int count;
   Int4 queryLength = query->length;
   Int4 subjectLength = subject->length;
-  int i;
   Uint1 tempResults[FULL_128_BITS];
 
   Int2 current_query_index;
@@ -161,7 +161,7 @@ static Int4 s_BlastNaScanSubject_8_4(const LookupTableWrap * lookup_wrap,
   }
   // set start index values
   abs_start = subject->sequence;
-  fprintf(stdout, "Absolute start address of subject sequence is: 0x%08x", abs_start);
+  //fprintf(stdout, "Absolute start address of subject sequence is: 0x%08x", abs_start);
   s = abs_start + scan_range[0] / COMPRESSION;
   s_end = abs_start + scan_range[1] / COMPRESSION; // 4 bases per byte
     
@@ -176,7 +176,7 @@ static Int4 s_BlastNaScanSubject_8_4(const LookupTableWrap * lookup_wrap,
   }
 
   // Write query to the register
-  write_query_count = 0;
+  int write_query_count = 0;
   fprintf(stdout, "Begin writing query to register in FPGA");
   while(write_query_count < (query->length) / COMPRESSION) {
     pico->WriteDeviceAbsolute(write_query_count, abs_start, FULL_128_BITS);
@@ -184,8 +184,8 @@ static Int4 s_BlastNaScanSubject_8_4(const LookupTableWrap * lookup_wrap,
   }
 
   // Increment through database, waiting for FPGA to be ready each time
-  current_database_index = s * COMPRESSION;
-  while(current_database_index < s_end) {
+  current_database_index =((Int4) s) * 4;
+  while(current_database_index < ((Int4) s_end)*4) {
     // If stream is ready to receive next batch, send 128 bits
     if(pico->GetBytesAvailable(database_stream, WRITESTREAM) >= FULL_128_BITS) {
       pico->WriteStream(database_stream, (current_database_index / COMPRESSION), FULL_128_BITS);        

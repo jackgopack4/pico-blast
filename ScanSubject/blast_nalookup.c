@@ -49,7 +49,7 @@ static char const rcsid[] =
 
 #define LOOKUP_VERBOSE
 
-extern const BlastSequenceBlk* searchQuery;
+extern const BLAST_SequenceBlk* searchQuery;
 
 ELookupTableType
 BlastChooseNaLookupTable(const LookupTableOptions* lookup_options,	
