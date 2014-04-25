@@ -1,29 +1,33 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <picodrv.h>
 #include <pico_errors.h>
 #define STREAMWRITE false
 #define STREAMREAD  true
 #define WRITE_DATA_SIZE 1048576
+#define DATABASELENGTH 32768
 int main(int argc, char* argv[]) {
     int err, i, j, stream;
     uint32_t buf[1024], results[8192];
     PicoDrv *pico;
     char* query, database;
     char currentDB;
-    int queryLength, databaseLength; // length in bytes
+    int query, database; // length in bytes
     const char* bitFileName = "M501_PicoBus128_HelloWorld.bit";
 
     // Load bit file here
     bitFileName = argv[1];
     runBitFile(bitFileName, &pico);
 
-    // Take query length input as variable
-    queryLength = argv[2];
-    databaseLength = argv[3];
+    // Take query and database pointers as inputs
+    query = atoi(argv[2]);
+    database = atoi(argv[3]);
 
     // We will put the query directly into a register of 8192 bits (or break 
     // it up into separate registers, I don't know if 8192 width is possible
+    // It is also possible that writing directly to the registers takes
+    // too long, we might need to break it up. Ask corey about this.
     pico->WriteDeviceAbsolute(0, query, queryLength);
 
     //output stream for database
@@ -32,8 +36,8 @@ int main(int argc, char* argv[]) {
 
     // get bytes of room available in stream to firmware
     i=pico->GetBytesAvailable(databaseStream, STREAMWRITE);
-    if (i > databaseLength*8) {
-        i = databaseLength*8;
+    if (i > DATABASELENGTH*8) {
+        i = DATABASELENGTH*8;
     }
     // Query and Database will be in same format
     // Empty character followed by two-bit compressed sequence
