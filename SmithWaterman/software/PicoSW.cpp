@@ -248,6 +248,7 @@ int ReceiveScore(StreamInfo_t* info){
 void * traceback(void* arg){
 
     StreamInfo_t *info = (StreamInfo_t *)arg;
+    printf("Reading the resulting traceback from the FPGA\n");
 
     int         err;
     kseq_t*     query           = info->start_info.query_seq;
@@ -256,15 +257,22 @@ void * traceback(void* arg){
     int         buf_size;
     
     // first we create a buffer which we are going to use for receiving our data
-    buf_size        =   db->seq.l * 2;   // db length
+    buf_size        =   (query->seq.l + db->seq.l -1) * 2;
     rx_buf          = new uint64_t[buf_size];
     memset(rx_buf,0,buf_size/sizeof(rx_buf[0]));
-    
+    printf("Finished initializing buffer %d.\n", buf_size);
     // receive the contents of buffer from the FPGA
     if (VERBOSE) printf("Reading %i B from stream handle %i\n", buf_size, info->traceback_stream);
     err = info->pico->ReadStream(info->traceback_stream, rx_buf, buf_size);
 
+    // for (int i=0; i < buf_size; i++)
+    //   printf("%lu\n", rx_buf[i]);
+    
+
     info->traceback_buffer = rx_buf;
+    printf("Thread complete.\n");
+    return 0;
+    
 }
 
 //////////
@@ -437,7 +445,19 @@ int main(int argc, char* argv[]) {
       fprintf(stderr, "Thread join error: %d\n", err);
       return EXIT_FAILURE;
     }
-    
+
+    printf("Starting traceback calculation.\n");
+    int traceback_size = query_db_info[0].start_info.query_seq->seq.l + query_db_info[0].start_info.db_seq->seq.l - 1;
+    printf("%zd\t%zd\n", query_db_info[0].start_info.query_seq->seq.l, query_db_info[0].start_info.db_seq->seq.l);
+    printf("%d\n", traceback_size);
+    int * traceback = new int[traceback_size];
+    printf("memory allocated\n");
+
+    // // Perform traceback calculation
+    err = trace_matrix_generate(traceback, query_db_info[0].traceback_buffer, 
+    				query_db_info[0].start_info.query_seq->seq.l,  
+    				query_db_info[0].start_info.db_seq->seq.l);
+
     /////////////
     // CLEANUP //
     /////////////
