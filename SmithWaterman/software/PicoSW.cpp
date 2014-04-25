@@ -458,6 +458,12 @@ int main(int argc, char* argv[]) {
     				query_db_info[0].start_info.query_seq->seq.l,  
     				query_db_info[0].start_info.db_seq->seq.l);
 
+	if(err==0) {
+		printf("Traceback calculation failed\n");
+		printf("The trace matrix data received is invalid\n");
+	}
+	else
+		printf("Traceback calculation successfull\n");
     /////////////
     // CLEANUP //
     /////////////

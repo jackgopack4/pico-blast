@@ -6,9 +6,13 @@ int traceback_function(int **trace_matrix,int *traceback, int query_size, int su
 
 	row_index=query_size;	//the last row of the matrix from the traceback will start
 	column_index=subject_size;	//the last column of the matrix from the traceback will start
-	
+
+	if(PRINTING)
+		printf("Starting traceback\n");	
 	while(traceback_index<(query_size+subject_size-1))	//till we reach the start of traceback matrix
 	{
+	if(PRINTING)
+                printf("Traceback index is: %d\n",traceback_index); 
 		if(trace_matrix[row_index][column_index]==DIAGONAL)	//if we get a MATCH
 		{
 			traceback[traceback_index]=MATCH;
@@ -32,6 +36,12 @@ int traceback_function(int **trace_matrix,int *traceback, int query_size, int su
 		{
 			traceback[traceback_index]=DONE;
 			traceback_index=query_size+subject_size;
+			break;
+		}
+		if(trace_matrix[row_index][column_index]==INVALID)
+		{
+			printf("The trace matrix is invalid\n");
+			return 0;
 		}
 	}
 	

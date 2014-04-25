@@ -5,23 +5,21 @@ int trace_matrix_generate(int *traceback, uint64_t *buffer, int query_size, int 
 	int **trace_matrix;
 	int buffer_index=0,row_index=1, column_index=1;
 	int trace_matrix_size,iter_row_index,iter_col_index,num_iter=0,iter_num=0;	
-	// if(PRINT)
-	// {
-	// 	cout<<"Enter the query size: "<<query_size;
-	// 	cout<<'\n';
-	// 	cout<<"Enter the subject size: "<<subject_size;
-  	// cout<<'\n';
-	// }
+ if(PRINT)
+ {
+ 	printf("The query size is:%d\n ",query_size);
+	printf("The subject size is:%d\n ",subject_size);
+ }
 	int max_num_iterations=query_size+subject_size-1;	//total iterations required at the maximum
-	// if(PRINT)
-	// 	cout<<"The max_num_iter is: "<<max_num_iterations<<'\n';
+	if(PRINT)
+		printf("The max_num_iterations are:%d\n ",max_num_iterations);
 	bool flag=false,even;
 	
 	int traceback_size=query_size+subject_size-1;
 //	traceback=new int[traceback_size]();	//DO NOT FORGET TO INITIALIZE THIS ARRAY IN THE CALLING FUNCTION
 	
-	// if(PRINT)	
-	// 	cout<<"The size of buffer is:"<<(query_size+subject_size)*2<<'\n';	
+ if(PRINT)	
+ 	printf("The size of buffer is:%d\n",(query_size+subject_size)*2);	
 
 	even=(((query_size+subject_size)%2)==0)?true:false;	//boolean variable which decides the calculation based on if /
 //	it is even or odd
@@ -70,53 +68,61 @@ int trace_matrix_generate(int *traceback, uint64_t *buffer, int query_size, int 
 				num_iter--;
 		}
 		
-		// if(PRINT)
-		// 	cout<<"The value of num_iter is: "<<num_iter<<'\n';
+ if(PRINT)
+	printf("The value of num_iter is:%d\n ",num_iter);
 		iter_num=0;
-		for(int iter=0;iter<num_iter;iter++)	//the number of matrix elements filled at each iteration
+		for(int iter=0;(iter<num_iter)&&(iter_row_index>0)&&(iter_col_index<subject_size);iter++)	//the number of matrix elements filled at each iteration
 		{
-			// if(PRINT)
-			// {
-			// 	cout<<"The iteration number is: "<<iter<<'\n';
-			// 	cout<<"The iter number is: "<<iter_num<<'\n';
-			// }
-			if(iter_num>=64)	//since we have buffer size as 64 bits
+			 if(PRINT)
+			 {
+			//	printf("The value of iter is:%d\n ",iter);
+			//	printf("The value of iter_num is:%d\n ",iter_num);
+			 }
+			if(iter_num==64)	//since we have buffer size as 64 bits
 			{
 				buffer_index++;
         iter_num=0;
         flag=true;
 			}
 
-			// if(PRINT)
-			// {
-			// 	cout<<"The buffer index is: "<<buffer_index<<'\n';
-			// 	cout<<"The iteration row index is: "<<iter_row_index<<'\n';
-			// 	cout<<"The iteration column index is: "<<iter_col_index<<'\n';
-			// }
+			if(PRINT)
+			{
+			//	printf("The value of buffer_index is:%d\n ",buffer_index);
+			//	printf("The value of iter_row_index is:%d\n ",iter_row_index);
+			//	printf("The value of iter_col_index is:%d\n ",iter_col_index);
+			}
 			//the actual assignment at each iteration
 			trace_matrix[iter_row_index][iter_col_index]=((buffer[buffer_index]>>iter_num)&3);
 			
-			if(PRINT)
-			  printf("The Trace Matrix Element is:%d\t%d\t%d\n ",trace_matrix[iter_row_index][iter_col_index],iter_row_index,iter_col_index);
-  
+			if(PRINT) {
+			//  printf("The Trace Matrix Element is:%d\t%d\t%d\n ",trace_matrix[iter_row_index][iter_col_index],iter_row_index,iter_col_index);
+			}
 	    iter_row_index--;
       iter_col_index++;
       iter_num+=2;
 		}
-
+if(PRINT){
+        printf("We are here\n ");
+	printf("The value of row index is: %d\n", row_index);
+	printf("The value of col index is: %d\n", column_index);
+	printf("The value of buffer_index is: %d\n", buffer_index);
+}
 		if(row_index<query_size)
 			row_index++;
 		else
 			column_index++;
 
-		if(flag)
+		if(flag){
 			buffer_index++;
+			flag=false;
+		}
 		else
 			buffer_index+=2;
-		
-		flag=false;
+	if(PRINT)
+                  printf("The clock cycle number at the end is: %d\n",n);	
 	}
-
+	if(PRINT)
+          printf("We are here again\n");
 	// if(PRINT)
 	// {
 	//   cout<<"The trace matrix is:"<<'\n';
@@ -128,11 +134,14 @@ int trace_matrix_generate(int *traceback, uint64_t *buffer, int query_size, int 
 	// 	}
 	// 	cout<<'\n';
 	// }
-	if(PRINT)
-	  printf("Calling traceback function");
-
-	traceback_function(trace_matrix,traceback,query_size,subject_size);	//the function which computes the traceback
 	
+	if(PRINT)
+	  printf("Calling traceback function\n");
+
+int err=traceback_function(trace_matrix,traceback,query_size,subject_size);	//the function which computes the traceback
+	
+	if(PRINT)
+          printf("Traceback function completed\n");	
 	// if(PRINT)
 	// {
 	// 	for(int j=0;j<=traceback_size;j++)
@@ -148,5 +157,5 @@ int trace_matrix_generate(int *traceback, uint64_t *buffer, int query_size, int 
 		delete trace_matrix[i];
 	delete trace_matrix;
 
-	return 1;
+	return err;
 }
