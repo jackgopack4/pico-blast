@@ -146,7 +146,7 @@ module SystolicArray #(
 
     // traceback
     output [127:0] 	       TracebackData, // global alignment score
-    output reg		       TracebackValid, // both global and local scores are valid when this is asserted
+    output 		       TracebackValid, // both global and local scores are valid when this is asserted
     input 		       TracebackReady, // output is ready to accept another score when this is asserted
     
     // These are the standard PicoBus signals that we'll use to communicate with the rest of the system.
@@ -532,18 +532,20 @@ module SystolicArray #(
         end
     end
 
-   
-   // Traceback data will be valid 
+   // Traceback data will begin to be valid once cells begin receiving new data.
+   // Validity after that point depends on the cells being enabled and continues
+   // until a valid score is produced.
+   reg traceback_region;
    always @(posedge clk) begin
-       if (rst) begin
-	  TracebackValid <= 0;
-       end else if (enable) begin
-	  TracebackValid <= 1;
-       end else begin
-	  TracebackValid <= 0;
-       end
-    end
-   
+      if (rst) begin
+	 traceback_region <= 0;
+      end else if (|targetStart) begin
+	 traceback_region <= 1;
+      end else if (ScoreValid) begin
+	 traceback_region <= 0;
+      end
+   end
+   assign TracebackValid = traceback_region? enable: 0;
    
     ///////////
     // DEBUG //

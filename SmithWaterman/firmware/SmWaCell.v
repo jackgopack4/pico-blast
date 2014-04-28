@@ -390,7 +390,9 @@ module SmWaCell #(
        ///////////////
        // TRACEBACK //
        ///////////////
-       if (newTargetIn) begin
+       if (rst) begin
+	  traceback_out <= 0;
+       end else if (newTargetIn) begin
 	  traceback_out <= 0;
        end else if (enable) begin
 	  traceback_out <= next_traceback;
