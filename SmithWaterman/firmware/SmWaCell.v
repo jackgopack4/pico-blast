@@ -386,18 +386,29 @@ module SmWaCell #(
         end else if (enable) begin
             h_out               <= next_h;
         end
-
-       ///////////////
-       // TRACEBACK //
-       ///////////////
-       if (rst) begin
-	  traceback_out <= 0;
-       end else if (newTargetIn) begin
-	  traceback_out <= 0;
-       end else if (enable) begin
-	  traceback_out <= next_traceback;
-       end
     end
+
+   ///////////////
+   // TRACEBACK //
+   ///////////////
+   reg valid_trace;
+   always @(posedge clk) begin
+
+      // Trace data remains invalid until a new target enters the cell
+      if (rst) begin
+	 valid_trace <= 0;
+      end else if (newTargetIn && enable) begin
+	 valid_trace <= 1;
+      end
+
+      // Assign the next_traceback value only once the data has become useful
+      if (rst || !valid_trace) begin
+	 traceback_out <= 0;
+      end else begin
+	 traceback_out <= next_traceback;
+      end
+   end
+
 
     ///////////
     // DEBUG //

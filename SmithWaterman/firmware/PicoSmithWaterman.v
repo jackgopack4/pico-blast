@@ -229,7 +229,7 @@ module PicoSmithWaterman #(
     input 			     s1o_rdy,
     output [`STREAM1_OUT_WIDTH-1:0]  s1o_data,
 
-    // Traceback output stream (cant have 2 SW units with this)
+    // Traceback output stream 
     output 			     s2o_valid,
     input 			     s2o_rdy,
     output [`STREAM2_OUT_WIDTH-1:0]  s2o_data,
@@ -447,7 +447,7 @@ module PicoSmithWaterman #(
 
         assign s2o_valid    = so_valid_trace;
         assign s2o_data     = so_data_trace;
-        assign so_rdy   [1] = so_rdy_trace;
+        assign so_rdy_trace  = s2o_rdy;
    
     `endif  // SW_UNITS_1
     `ifdef  SW_UNITS_2

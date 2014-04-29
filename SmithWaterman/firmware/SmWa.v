@@ -451,8 +451,6 @@ module SmWa #(
     ) tracebackFifo (
         .wr_clk     (clkSmWa),
         .wr_rst     (rstSmWa),
-        // TODO: ensure that this is < STREAM_W, or else we have to go to
-        // multiple transfers to load up this FIFO
 	.din        (tracebackData),	     
         .wr_en      (tracebackValid),
         .full       (tracebackFifoFull),

@@ -259,14 +259,14 @@ void * traceback(void* arg){
     // first we create a buffer which we are going to use for receiving our data
     buf_size        =   (query->seq.l + db->seq.l -1) * 2;
     rx_buf          = new uint64_t[buf_size];
-    memset(rx_buf,0,buf_size/sizeof(rx_buf[0]));
+    memset(rx_buf,0,buf_size);
     printf("Finished initializing buffer %d.\n", buf_size);
     // receive the contents of buffer from the FPGA
     if (VERBOSE) printf("Reading %i B from stream handle %i\n", buf_size, info->traceback_stream);
     err = info->pico->ReadStream(info->traceback_stream, rx_buf, buf_size);
 
-    // for (int i=0; i < buf_size; i++)
-    //   printf("%lu\n", rx_buf[i]);
+    for (int i=0; i < buf_size; i++)
+      printf("%lx\n", rx_buf[i]);
     
 
     info->traceback_buffer = rx_buf;

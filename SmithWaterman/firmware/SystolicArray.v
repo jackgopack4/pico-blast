@@ -539,7 +539,7 @@ module SystolicArray #(
    always @(posedge clk) begin
       if (rst) begin
 	 traceback_region <= 0;
-      end else if (|targetStart) begin
+      end else if (targetStart[0]) begin
 	 traceback_region <= 1;
       end else if (ScoreValid) begin
 	 traceback_region <= 0;
