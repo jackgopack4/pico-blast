@@ -25,7 +25,7 @@
 #include "PicoSW.h"
 
 // turn this define on to enable VERBOSE debug printing
-#define VERBOSE                 false
+#define VERBOSE                 true
 
 ///////////////
 // FUNCTIONS //
@@ -245,6 +245,7 @@ int ReceiveScore(StreamInfo_t* info){
     return err;
 }
 
+// in this method, we ONLY receive the traceback data.  we do not actually compute any traceback info
 void * traceback(void* arg){
 
     StreamInfo_t *info = (StreamInfo_t *)arg;
@@ -255,24 +256,32 @@ void * traceback(void* arg){
     kseq_t*     db              = info->start_info.db_seq;
     uint64_t*    rx_buf;
     int         buf_size;
+    int         buf_len;
+    char            ibuf    [1024];
     
     // first we create a buffer which we are going to use for receiving our data
-    buf_size        =   (query->seq.l + db->seq.l -1) * 2;
-    rx_buf          = new uint64_t[buf_size];
-    memset(rx_buf,0,buf_size);
+    buf_len         = query->seq.l * 2;
+    //buf_len         = (query->seq.l + db->seq.l - 1) * 2;
+    buf_size        = 8 * buf_len;
+    printf("Creating uint64_t buffer w/ %i entries, %i B per entry, %i B total\n", buf_len, (int) sizeof(uint64_t), buf_len*((int)sizeof(uint64_t)));
+    rx_buf          = (uint64_t*) calloc(buf_len, sizeof(uint64_t));
     printf("Finished initializing buffer %d.\n", buf_size);
     // receive the contents of buffer from the FPGA
     if (VERBOSE) printf("Reading %i B from stream handle %i\n", buf_size, info->traceback_stream);
-    err = info->pico->ReadStream(info->traceback_stream, rx_buf, buf_size);
+    if ((err = info->pico->ReadStream(info->traceback_stream, rx_buf, buf_size)) < 0){
+        fprintf(stderr, "RunBitFile error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
+        exit(EXIT_FAILURE);
+    }
 
-    for (int i=0; i < buf_size; i++)
-      printf("%lx\n", rx_buf[i]);
+    // print out the data that we just received
+    printf("All traceback data received\n");
+    if (VERBOSE) 
+        for (int i=0; i < buf_len; i++)
+            printf("%lx\n", rx_buf[i]);
     
 
     info->traceback_buffer = rx_buf;
     printf("Thread complete.\n");
-    return 0;
-    
 }
 
 //////////
@@ -414,7 +423,7 @@ int main(int argc, char* argv[]) {
     ////////////////////////////////
     
     // Create traceback stream
-    if ((err = aligner->CreateStream(2)) < 0){
+    if ((err = aligner->CreateStream(12)) < 0){
       fprintf(stderr, "CreateStream error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
       return EXIT_FAILURE;
     }
@@ -469,6 +478,7 @@ int main(int argc, char* argv[]) {
     /////////////
 
     // close the input and output files for sequences
+    free(query_db_info[0].traceback_buffer);
     kseq_destroy(querySeq);
     gzclose(queryFile);
     kseq_destroy(dbSeq);
