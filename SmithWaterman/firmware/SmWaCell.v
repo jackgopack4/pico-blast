@@ -399,6 +399,8 @@ module SmWaCell #(
 	 valid_trace <= 0;
       end else if (newTargetIn && enable) begin
 	 valid_trace <= 1;
+      end else if (endTargetIn) begin
+	 valid_trace <= 0;
       end
 
       // Assign the next_traceback value only once the data has become useful
