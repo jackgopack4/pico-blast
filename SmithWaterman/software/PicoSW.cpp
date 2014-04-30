@@ -260,9 +260,8 @@ void * traceback(void* arg){
     char            ibuf    [1024];
     
     // first we create a buffer which we are going to use for receiving our data
-    buf_len         = query->seq.l * 2;
-    //buf_len         = (query->seq.l + db->seq.l - 1) * 2;
-    buf_size        = 8 * buf_len;
+    buf_len         = (query->seq.l + db->seq.l - 1) * 2;
+    buf_size        = sizeof(uint64_t) * buf_len;
     printf("Creating uint64_t buffer w/ %i entries, %i B per entry, %i B total\n", buf_len, (int) sizeof(uint64_t), buf_len*((int)sizeof(uint64_t)));
     rx_buf          = (uint64_t*) calloc(buf_len, sizeof(uint64_t));
     printf("Finished initializing buffer %d.\n", buf_size);
