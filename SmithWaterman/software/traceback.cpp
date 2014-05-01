@@ -3,6 +3,7 @@
 int traceback_function(int **trace_matrix,int *traceback, int query_size, int subject_size)
 {
 	int traceback_index=0,row_index, column_index;
+	int size;
 
 	row_index=query_size;	//the last row of the matrix from the traceback will start
 	column_index=subject_size;	//the last column of the matrix from the traceback will start
@@ -32,18 +33,17 @@ int traceback_function(int **trace_matrix,int *traceback, int query_size, int su
       traceback_index++;
 			column_index--;
 		}
+		else if(trace_matrix[row_index][column_index]==INVALID)
+		{
+			return 0;
+		}
 		if((row_index==0)&&(column_index==0))	//traced back to the target
 		{
 			traceback[traceback_index]=DONE;
-			traceback_index=query_size+subject_size;
 			break;
 		}
-		if(trace_matrix[row_index][column_index]==INVALID)
-		{
-			printf("The trace matrix is invalid\n");
-			return 0;
-		}
 	}
+	size=traceback_index;
 	
-	return 1;
+	return size;
 }

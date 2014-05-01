@@ -471,7 +471,13 @@ int main(int argc, char* argv[]) {
 		printf("The trace matrix data received is invalid\n");
 	}
 	else
+	{
 		printf("Traceback calculation successfull\n");
+		printf("Traceback matrix is:\n");
+		for(int i=0;i<err;i++)
+			printf("%d\t",traceback[i]);
+		printf("\n");
+	}
     /////////////
     // CLEANUP //
     /////////////
