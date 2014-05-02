@@ -24,7 +24,7 @@
 
 int main(int argc, char* argv[]) {
   int         err, i, j, stream;
-  uint32_t    buf[1024], u32, addr;
+  uint32_t    buf[1024], u32, addr, hitsBuffer[4];
   char        ibuf[1024];
   PicoDrv    *pico;
   const char* bitFileName;
@@ -33,11 +33,14 @@ int main(int argc, char* argv[]) {
   Int4 max_hits;
   Int4 * scan_range[2];
 
-  Uint1 *s;                 // Pointer for current address of database index
-  Uint1 *abs_start, *s_end; // Pointer for address of absolute start, end
+  Uint1 *s = subject->sequence; // Pointer for current address of database index
+  Uint1 *abs_start; //*s_end; // Pointer for address of absolute start, end
+                            // s_end not yet implemented yet
   Int4 total_hits;          // Total number of hits, updated from FPGA memory
   Int4 word_length = 8;     // Number for word length. Plan to take as input in
                             // the future and support more word lengths in FPGA
+
+  Uint1 *q = query->sequence;
 
   int count;                            // Used for incrementing
   Int4 queryLength = query->length;     // Length parameter for query.
@@ -87,22 +90,34 @@ int main(int argc, char* argv[]) {
   fprintf(stdout, "Absolute start address of subject sequence is: 0x%08x", abs_start);
   s = abs_start + scan_range[0] / COMPRESSIONRATIO;     // 4 bases per byte
   s_end = abs_start + scan_range[1] / COMPRESSIONRATIO;
-
+  q = query->
   // Write the query of given length to an address in the FPGA
-
+  current_query_index = 0;
+  fprintf(stdout, "Begin writing query to register in FPGA");
+  while(current_query_index < queryLengthBytes) {
+    pico->WriteDeviceAbsolute(write_query_count, abs_start, FULL_128_BITS);
+    current_query_index+=FULL_128_BITS;
+  }
   // Stream out the database in compressed format 
-
+  current_database_index = 0;
+  
+  pico->WriteStream(database_stream, s, 
   // while the number of hits is less than the number of hits and haven't 
   // reached the end of the database yet
+  while(total_hits < max_hits && current_database_index < databaseLengthBytes) {
 
     // Read memory address for hits counter
-    
+    if((err = pico->ReadDeviceAbsolute(HITSADDRESS, hitsBuffer, 16)) < 0) {
+      fprintf(stderr, "Error Reading: %d\n", err);
+      exit(1);
+    } 
     // If hits read greater than hits recorded
+    if(hitsBuffer[0] > total_hits) {
       
       // Read back 128 bits the number of times of difference between two
       // Upper 64 bits is query index, lower 64 bits is database index
       
       // Convert this back to result format, store it to result array
-
+    }
       // Continue until hits read = hits recorded
-}
+  }}
