@@ -1,0 +1,11 @@
+# $Id: Makefile.test_dll.lib 184376 2010-02-26 17:16:17Z ivanov $
+
+SRC = test_dll
+LIB = test_dll
+
+LIB_OR_DLL = dll
+DLL_TYPE = plugin
+
+DLL_UNDEF_FLAGS = $(FORBID_UNDEF)
+
+WATCHERS = ivanov

@@ -1,0 +1,13 @@
+# $Id: Makefile.vfs.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = vfs
+SRC = path syspath manager resolver
+
+CPPFLAGS = -I$(srcdir) $(SRA_INCLUDE) $(Z_INCLUDE) $(BZ2_INCLUDE) \
+           $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY -DALWAYS_ADD_EXE $(ORIG_CPPFLAGS)
+
+DLL_LIB = srapath$(DLL) kurl$(DLL) krypto$(DLL) kfg$(DLL) kfs$(DLL) klib$(DLL)
+
+LIB_OR_DLL = both

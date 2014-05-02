@@ -1,0 +1,11 @@
+# $Id: Makefile.srapath.lib 14728 2013-03-08 23:32:32Z ucko $
+
+WATCHERS = ucko
+
+LIB = srapath
+SRC = srapath-stub srapath
+
+CPPFLAGS = $(SRA_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY $(ORIG_CPPFLAGS)
+
+LIB_OR_DLL = both
+DLL_LIB = kfg$(DLL) kfs$(DLL) klib$(DLL)

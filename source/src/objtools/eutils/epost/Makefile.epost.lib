@@ -1,0 +1,6 @@
+# $Id: Makefile.epost.lib 190691 2010-05-04 15:42:43Z vakatov $
+
+LIB = epost
+SRC = epost__ epost___
+
+WATCHERS = grichenk

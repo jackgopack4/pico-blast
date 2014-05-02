@@ -1,0 +1,11 @@
+# $Id: Makefile.xstruct_dp.lib 208339 2010-10-15 18:36:18Z serovav $
+# Author:  Paul Thiessen
+
+# Build library "xstruct_dp"
+#################################
+
+WATCHERS = thiessen
+
+SRC = block_align
+
+LIB = xstruct_dp

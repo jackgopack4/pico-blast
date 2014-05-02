@@ -1,0 +1,13 @@
+# $Id: Makefile.fastqloader.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = fastqloader
+SRC = fastq-reader fastq-grammar fastq-lex
+
+CPPFLAGS = $(SRA_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY $(ORIG_CPPFLAGS)
+DLL_LIB = kfs klib load loader kq
+
+# leave off kq on Windows per upstream Makefile?
+
+LIB_OR_DLL = $(USUAL_AND_LIB)

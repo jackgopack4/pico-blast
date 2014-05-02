@@ -1,0 +1,18 @@
+# $Id: Makefile.xmlwrapp.lib 377654 2012-10-15 14:11:19Z satskyse $
+
+SRC = ait_impl document event_parser node_iterator tree_parser \
+      xml_init attributes node node_manip stylesheet utility     \
+      xslt_init namespace xpath_expression node_set document_impl schema errors dtd \
+      document_proxy libxml2_xmlwrapp deref_impl xpath_object extension_function \
+      extension_element
+
+
+LIB = xmlwrapp
+LIBS = $(LIBXSLT_LIBS) $(LIBXML_LIBS)
+CPPFLAGS= $(ORIG_CPPFLAGS) $(LIBXML_INCLUDE) $(LIBXSLT_INCLUDE)
+
+REQUIRES = LIBXML LIBXSLT
+LIB_OR_DLL = lib
+
+USE_PCH = no
+WATCHERS = satskyse

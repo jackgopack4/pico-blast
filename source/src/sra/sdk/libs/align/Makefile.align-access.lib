@@ -1,0 +1,12 @@
+# $Id: Makefile.align-access.lib 16076 2013-05-19 02:07:57Z ucko $
+
+WATCHERS = ucko
+
+LIB = align-access
+SRC = align-access
+
+DLL_LIB = ncbi-bam$(FORCE_STATIC) vfs kfs kproc klib $(Z_LIB)
+LIBS = $(Z_LIBS) $(ORIG_LIBS)
+
+CPPFLAGS = $(SRA_INCLUDE) $(Z_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY \
+           $(ORIG_CPPFLAGS)

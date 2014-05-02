@@ -1,0 +1,17 @@
+# $Id: Makefile.kdf5.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = kdf5
+SRC = hdf5dir hdf5file hdf5arrayfile
+
+CPPFLAGS = $(SRA_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) $(HDF5_INCLUDE) \
+           -D_LIBRARY $(ORIG_CPPFLAGS)
+
+DLL_LIB = $(Z_LIB)
+LIBS = $(HDF5_LIBS) $(Z_LIBS) $(ORIG_LIBS)
+
+REQUIRES = HDF5
+# Linux
+
+LIB_OR_DLL = $(USUAL_AND_DLL)

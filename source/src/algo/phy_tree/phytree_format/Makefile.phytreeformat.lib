@@ -1,0 +1,12 @@
+# $Id: Makefile.phytreeformat.lib 202273 2010-08-25 00:54:29Z ucko $
+
+LIB = phytree_format
+SRC = phytree_format phytree_simplify
+
+CXXFLAGS = $(FAST_CXXFLAGS)
+LDFLAGS  = $(FAST_LDFLAGS)
+CPPFLAGS = $(ORIG_CPPFLAGS)
+
+ASN_DEP = biotree seqset taxon1
+
+WATCHERS = boratyng

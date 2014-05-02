@@ -1,0 +1,12 @@
+# $Id: Makefile.vtblcp.app 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+APP = vtblcp
+SRC = vtblcp
+
+LIB = wvdb$(FORCE_STATIC) wkdb$(FORCE_STATIC) kapp$(FORCE_STATIC) \
+      kfs$(FORCE_STATIC) klib$(FORCE_STATIC) $(Z_LIB)
+LIBS = $(DL_LIBS) $(Z_LIBS) $(ORIG_LIBS)
+
+CPPFLAGS = $(SRA_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) $(ORIG_CPPFLAGS)

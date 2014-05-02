@@ -1,0 +1,12 @@
+# $Id: Makefile.odbc64.lib 370257 2012-07-27 14:56:37Z ivanovp $
+
+LIB = odbc_ftds64
+SRC = connectparams convert_tds2sql descriptor error native odbc odbc_util \
+	  prepare_query sql2tds odbc_checks
+
+DLL_LIB = tds_ftds64
+REQUIRES = -XCODE
+
+CPPFLAGS = -D_FREETDS_LIBRARY_SOURCE -DHAVE_CONFIG_H=1 $(FTDS64_INCLUDE) $(ODBC_INCLUDE) $(ORIG_CPPFLAGS)
+
+WATCHERS = ucko

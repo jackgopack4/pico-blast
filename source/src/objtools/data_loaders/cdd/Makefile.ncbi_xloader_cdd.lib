@@ -1,0 +1,11 @@
+# $Id: Makefile.ncbi_xloader_cdd.lib 208341 2010-10-15 18:36:58Z serovav $
+
+# Build library "ncbi_xloader_cdd"
+###############################
+
+WATCHERS = vasilche
+
+LIB = ncbi_xloader_cdd
+SRC = cdd
+
+ASN_DEP = seqset

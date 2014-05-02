@@ -1,0 +1,9 @@
+# $Id: Makefile.fastme.lib 208339 2010-10-15 18:36:18Z serovav $
+
+WATCHERS = jcherry gorelenk
+
+SRC = NNI bNNI bme fastme gme graph heap inputs newickstring traverse
+LIB = fastme
+
+CXXFLAGS = $(FAST_CXXFLAGS)
+LDFLAGS  = $(FAST_LDFLAGS)

@@ -1,0 +1,6 @@
+# $Id: Makefile.pbacktest.lib 184376 2010-02-26 17:16:17Z ivanov $
+
+SRC = pbacktest
+LIB = xpbacktest
+
+WATCHERS = lavr

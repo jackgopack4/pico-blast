@@ -1,0 +1,12 @@
+# $Id: Makefile.asn.lib 190691 2010-05-04 15:42:43Z vakatov $
+
+# Build library "XASN"
+#################################
+
+SRC = asnio asnwrite
+LIB    = xasn
+
+CPPFLAGS = $(ORIG_CPPFLAGS) \
+  $(NCBI_C_INCLUDE)
+
+WATCHERS = gouriano

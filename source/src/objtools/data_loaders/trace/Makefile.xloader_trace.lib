@@ -1,0 +1,11 @@
+# $Id: Makefile.xloader_trace.lib 208341 2010-10-15 18:36:58Z serovav $
+
+# Build library "xloader_trace"
+###############################
+
+WATCHERS = vasilche
+
+LIB = ncbi_xloader_trace
+SRC = trace_chgr
+
+ASN_DEP = id1

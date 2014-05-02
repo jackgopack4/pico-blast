@@ -1,0 +1,6 @@
+# $Id: Makefile.egquery.lib 190691 2010-05-04 15:42:43Z vakatov $
+
+LIB = egquery
+SRC = egquery__ egquery___
+
+WATCHERS = grichenk

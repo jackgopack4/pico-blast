@@ -1,0 +1,12 @@
+# $Id: Makefile.ksproc.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = ksproc
+SRC = task procmgr sttimeout stlock stcond stsem stthread stbarrier
+
+DLL_LIB = klib$(DLL)
+
+CPPFLAGS = $(SRA_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY $(ORIG_CPPFLAGS)
+
+LIB_OR_DLL = $(USUAL_AND_LIB)

@@ -1,0 +1,17 @@
+# $Id: Makefile.xobjwrite.lib 350956 2012-01-25 12:11:28Z ludwigf $
+
+ASN_DEP = seqset
+
+LIB = xobjwrite
+SRC = agp_write \
+      write_util \
+      gff_writer gff2_write_data \
+      gff3_writer gff3_write_data gff3_alignment_data gff3_source_data \
+      gtf_writer gtf_write_data \
+      gvf_writer gvf_write_data \
+      wiggle_writer \
+      bed_writer bed_track_record bed_feature_record \
+      vcf_writer
+      
+WATCHERS = ludwigf boukn
+

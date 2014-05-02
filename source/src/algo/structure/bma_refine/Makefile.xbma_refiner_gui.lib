@@ -1,0 +1,17 @@
+# $Id: Makefile.xbma_refiner_gui.lib 208339 2010-10-15 18:36:18Z serovav $
+#
+# GUI to set options for Block Multiple Alignment Refiner library
+#
+##########################################
+
+WATCHERS = thiessen
+
+REQUIRES = wxWidgets objects
+
+ASN_DEP = cdd
+
+LIB =   xbma_refiner_gui
+
+SRC =   InterfaceGUI
+
+CPPFLAGS = $(ORIG_CPPFLAGS) $(WXWIDGETS_INCLUDE)

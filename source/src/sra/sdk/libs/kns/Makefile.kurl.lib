@@ -1,0 +1,14 @@
+# $Id: Makefile.kurl.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = kurl
+SRC = kns_manager KCurlFile KCurlRequest url-fetcher url-fetcher-curl \
+      entrez-fetcher
+
+CPPFLAGS = $(SRA_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) $(CURL_INCLUDE) \
+           -D_LIBRARY $(ORIG_CPPFLAGS)
+DLL_LIB = klib$(DLL) kfs$(DLL) $(Z_LIB)
+LIBS = $(CURL_LIBS) $(NETWORK_LIBS) $(ORIG_LIBS)
+
+LIB_OR_DLL = both

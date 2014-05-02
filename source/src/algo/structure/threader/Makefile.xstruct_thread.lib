@@ -1,0 +1,12 @@
+# $Id: Makefile.xstruct_thread.lib 208339 2010-10-15 18:36:18Z serovav $
+#################################
+
+WATCHERS = thiessen
+
+SRC = thrdalgs thrdatd thrdbwfi thrdcpal thrdcpll thrdcprl \
+	thrdcxei thrddgri thrdrsmp thrdsal0 thrdsalr \
+	thrdsalu thrdsgoi thrdslo0 thrdslor thrdslou \
+	thrdspci thrdspea thrdspel thrdspni thrdttb0 \
+	thrdttbi thrdzsc
+
+LIB = xstruct_thread

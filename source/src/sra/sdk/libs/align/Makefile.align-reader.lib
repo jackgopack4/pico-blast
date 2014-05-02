@@ -1,0 +1,15 @@
+# $Id: Makefile.align-reader.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = align-reader
+SRC = align_mgr al_iterator ref_iterator pl_iterator dna-reverse-cmpl \
+      reference-cmn reader-cmn reader-refseq reference refseq-mgr \
+      quality-quantizer
+
+DLL_LIB = vdb kdb kfg kfs klib $(Z_LIB)
+LIBS = $(Z_LIBS) $(ORIG_LIBS)
+
+CPPFLAGS = $(SRA_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY $(ORIG_CPPFLAGS)
+
+LIB_OR_DLL = both

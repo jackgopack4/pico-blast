@@ -1,0 +1,10 @@
+# $Id: Makefile.soap.lib 184376 2010-02-26 17:16:17Z ivanov $
+
+# Build library "XSOAP"
+#################################
+
+SRC = soap_message soap_readhook soap_writehook soap_client \
+      soap_11__ soap_11___
+LIB = xsoap
+
+WATCHERS = gouriano

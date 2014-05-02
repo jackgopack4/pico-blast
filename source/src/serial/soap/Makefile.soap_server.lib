@@ -1,0 +1,11 @@
+# $Id: Makefile.soap_server.lib 184376 2010-02-26 17:16:17Z ivanov $
+
+# Build library "XSOAP_SERVER"
+#################################
+
+SRC = soap_server
+LIB = xsoap_server
+
+REQUIRES = cgi
+
+WATCHERS = gouriano

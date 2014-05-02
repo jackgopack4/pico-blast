@@ -1,0 +1,8 @@
+# $Id: Makefile.dbapi_sample_base.lib 370257 2012-07-27 14:56:37Z ivanovp $
+
+SRC = dbapi_sample_base
+LIB = dbapi_sample_base
+
+CPPFLAGS = $(ORIG_CPPFLAGS) $(SYBASE_INCLUDE)
+
+WATCHERS = ucko

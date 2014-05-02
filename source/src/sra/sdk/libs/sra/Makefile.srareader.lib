@@ -1,0 +1,9 @@
+# $Id: Makefile.srareader.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = srareader
+SRC = reader-cmn reader-fastq reader-sff reader-illumina reader-abi
+
+CPPFLAGS = $(SRA_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY $(ORIG_CPPFLAGS)
+DLL_LIB = sradb$(DLL) kdb$(DLL) klib$(DLL)

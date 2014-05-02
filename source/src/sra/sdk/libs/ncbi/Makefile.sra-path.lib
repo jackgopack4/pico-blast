@@ -1,0 +1,22 @@
+# $Id: Makefile.sra-path.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = sra-path
+SRC = srapath
+
+panfs_darwin=net
+panfs_linux=panfs
+panfs_solaris=panfs
+panfs_=/panfs
+panfs=$(panfs_$(OSTYPE))
+
+CPPFLAGS = $(SRA_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY $(ORIG_CPPFLAGS) \
+           -DTEMP_SERV_PATH=/$(panfs)/traces01:/$(panfs)/traces31 \
+           -DTEMP_VOL_PATH=sra2:sra1:sra0 -DTEMP_EBI_PATH=era1:era0 \
+           -DTEMP_DDBJ_PATH=dra0
+
+DLL_LIB = kfg$(DLL) kfs$(DLL) klib$(DLL) $(Z_LIB) $(BZ2_LIB)
+LIBS = $(Z_LIBS) $(BZ2_LIBS) $(ORIG_LIBS)
+
+LIB_OR_DLL = both

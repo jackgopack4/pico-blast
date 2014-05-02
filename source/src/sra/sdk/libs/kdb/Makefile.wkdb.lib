@@ -1,0 +1,14 @@
+# $Id: Makefile.wkdb.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = wkdb
+SRC = btree dbmgr-cmn wkdb wdbmgr wdatabase wtable \
+      wcolumn wcoldata wcolidx wcolidx0 wcolidx1 wcolidx2 \
+      idxblk widxblk wmeta windex wtrieidx-v1 wtrieidx-v2 wu64idx-v3
+
+CPPFLAGS = $(SRA_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY $(ORIG_CPPFLAGS)
+
+DLL_LIB = vfs$(DLL) kfs$(DLL) krypto$(DLL) klib$(DLL)
+
+LIB_OR_DLL = both

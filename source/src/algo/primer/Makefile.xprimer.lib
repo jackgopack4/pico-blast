@@ -1,0 +1,17 @@
+# $Id: Makefile.xprimer.lib 362317 2012-05-08 19:10:58Z jianye $
+
+ASN_DEP = seqset
+
+###  BASIC PROJECT SETTINGS
+LIB = xprimer
+SRC = primercheck
+# OBJ =
+
+###  EXAMPLES OF OTHER SETTINGS THAT MIGHT BE OF INTEREST
+# CPPFLAGS = $(ORIG_CPPFLAGS) $(NCBI_C_INCLUDE)
+# CFLAGS   = $(FAST_CFLAGS)
+# CXXFLAGS = $(FAST_CXXFLAGS)
+#
+# LIB_OR_DLL = dll
+
+WATCHERS = jianye

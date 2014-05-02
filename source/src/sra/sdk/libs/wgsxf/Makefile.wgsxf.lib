@@ -1,0 +1,13 @@
+# $Id: Makefile.wgsxf.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = wgsxf
+SRC = build_scaffold build_read_type universe
+
+CPPFLAGS = $(SRA_INCLUDE) $(Z_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY \
+           $(ORIG_CPPFLAGS)
+DLL_LIB = vdb$(DLL) kfs$(DLL) klib$(DLL) $(BZ2_LIB)
+LIBS = $(BZ2_LIBS) $(ORIG_LIBS)
+
+LIB_OR_DLL = both

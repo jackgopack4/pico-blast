@@ -1,0 +1,11 @@
+# $Id: Makefile.wsraschema.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = wsraschema
+SRC = wsraschema-stub sraschema sra-schema
+DLL_LIB = wvdb$(DLL)
+
+CPPFLAGS = $(SRA_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY $(ORIG_CPPFLAGS)
+
+LIB_OR_DLL = lib

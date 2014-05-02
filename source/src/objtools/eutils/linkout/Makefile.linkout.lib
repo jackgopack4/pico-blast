@@ -1,0 +1,6 @@
+# $Id: Makefile.linkout.lib 190691 2010-05-04 15:42:43Z vakatov $
+
+SRC = linkout__ linkout___
+LIB = linkout
+
+WATCHERS = grichenk

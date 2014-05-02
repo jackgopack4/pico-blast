@@ -1,0 +1,16 @@
+# $Id: Makefile.ncbi_xloader_lds2.lib 197195 2010-07-14 16:15:14Z grichenk $
+
+# Build library "ncbi_xloader_lds2"
+###############################
+
+LIB = ncbi_xloader_lds2
+SRC = lds2_dataloader
+
+ASN_DEP = seq
+
+CPPFLAGS = $(SQLITE3_INCLUDE) $(ORIG_CPPFLAGS)
+
+# Dependencies for shared library
+DLL_LIB = lds2
+
+WATCHERS = grichenk

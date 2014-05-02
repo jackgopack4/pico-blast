@@ -1,0 +1,6 @@
+# $Id: Makefile.elink.lib 190691 2010-05-04 15:42:43Z vakatov $
+
+LIB = elink
+SRC = elink__ elink___
+
+WATCHERS = grichenk

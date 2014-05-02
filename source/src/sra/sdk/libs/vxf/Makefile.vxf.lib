@@ -1,0 +1,19 @@
+# $Id: Makefile.vxf.lib 16076 2013-05-19 02:07:57Z ucko $
+
+WATCHERS = ucko
+
+LIB = vxf
+SRC = ceil clip cut echo exists floor paste round trunc unzip map funzip \
+      vec-sum min max rldecode pack unpack izip iunzip diff sum bit_or trim \
+      deriv integral delta undelta add-row-id subtract-row-id irzip \
+      rand_4na_2na outlier-encoder outlier-decoder bunzip simple-sub-select \
+      extract_token strtonum sprintf wgs-tokenize-accession \
+      lower-case-tech-reads universe
+
+CPPFLAGS = $(SRA_INCLUDE) $(Z_INCLUDE) $(BZ2_INCLUDE) \
+           $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY $(ORIG_CPPFLAGS)
+
+DLL_LIB = vdb$(DLL) kfs$(DLL) klib$(DLL) $(Z_LIB) $(BZ2_LIB)
+LIBS = $(Z_LIBS) $(BZ2_LIBS) $(ORIG_LIBS)
+
+LIB_OR_DLL = both

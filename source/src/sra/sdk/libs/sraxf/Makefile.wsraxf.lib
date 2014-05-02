@@ -1,0 +1,22 @@
+# $Id: Makefile.wsraxf.lib 16076 2013-05-19 02:07:57Z ucko $
+
+WATCHERS = ucko
+
+LIB = wsraxf
+SRC = untyped v0-decompress-init v0-decompress v0-funcs bio-start \
+      dynamic-454-read-descriptor format-spot-name extract-name_coord \
+      tokenize-spot_name-454 tokenize-spot_name-illumina \
+      tokenize-spot_name-abi tokenize-spot_name-helicos \
+      tokenize-spot_name-ion-torrent \
+      color-from-dna dna-from-color spot-desc read-desc rotate swap \
+      denormalize normalize qual4_decode read-seg-from-readn rewrite-spot-name \
+      make-position process-position extract-coordinates fpcodec index_lookup \
+      varloc extract-name_fmt extract-spot_name stats stats_quality \
+      qual4_encode wuniverse
+
+CPPFLAGS = $(SRA_INCLUDE) $(Z_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY \
+           $(ORIG_CPPFLAGS)
+DLL_LIB = wvdb$(DLL) wkdb$(DLL) ksrch$(DLL) kfs$(DLL) klib$(DLL) $(Z_LIB)
+LIBS = $(Z_LIBS) $(ORIG_LIBS)
+
+LIB_OR_DLL = both

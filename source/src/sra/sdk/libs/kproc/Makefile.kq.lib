@@ -1,0 +1,14 @@
+# $Id: Makefile.kq.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = kq
+SRC = queue
+
+CPPFLAGS = $(SRA_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY $(ORIG_CPPFLAGS)
+
+DLL_LIB = klib$(DLL) kproc$(DLL)
+
+LIB_OR_DLL = both
+
+# REQUIRES = unix

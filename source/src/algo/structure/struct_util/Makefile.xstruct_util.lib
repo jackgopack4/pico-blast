@@ -1,0 +1,19 @@
+# $Id: Makefile.xstruct_util.lib 208339 2010-10-15 18:36:18Z serovav $
+# Author:  Paul Thiessen
+
+# Build library "xstruct_util"
+#################################
+
+WATCHERS = thiessen lanczyck 
+
+REQUIRES = objects
+LIB = xstruct_util
+
+ASN_DEP = seqset scoremat
+
+SRC = aaa_dummy_pch \
+	struct_util \
+	su_alignment_set \
+	su_block_multiple_alignment \
+	su_pssm \
+	su_sequence_set

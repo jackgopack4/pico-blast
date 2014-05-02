@@ -1,0 +1,11 @@
+# $Id: Makefile.snputil.lib 381763 2012-11-28 17:08:30Z rudnev $
+
+LIB = snputil
+
+SRC = snp_utils snp_bitfield \
+      snp_bitfield_1_2 snp_bitfield_2 snp_bitfield_3 snp_bitfield_4 \
+      snp_bitfield_5 snp_bitfield_factory
+
+ASN_DEP = seqset variation
+
+WATCHERS = rudnev

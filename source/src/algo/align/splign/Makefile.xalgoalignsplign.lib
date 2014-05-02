@@ -1,0 +1,12 @@
+# $Id: Makefile.xalgoalignsplign.lib 357959 2012-03-27 22:58:17Z kiryutin $
+
+WATCHERS = kiryutin kapustin
+
+ASN_DEP = seq xnetblast
+
+SRC = splign splign_util splign_formatter splign_simple splign_cmdargs compart_matching
+
+LIB = xalgoalignsplign
+
+CXXFLAGS = $(FAST_CXXFLAGS)
+LDFLAGS  = $(FAST_LDFLAGS)

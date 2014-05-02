@@ -1,0 +1,11 @@
+# $Id: Makefile.magic.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = magic
+SRC = magic apprentice softmagic ascmagic encoding compress is_tar readelf \
+      print fsmagic funcs apptype cdf cdf_time readcdf
+
+CPPFLAGS = -I$(srcdir)/config-glue $(ORIG_CPPFLAGS) $(SRA_INCLUDE) \
+           $(SRA_INTERNAL_CPPFLAGS)
+

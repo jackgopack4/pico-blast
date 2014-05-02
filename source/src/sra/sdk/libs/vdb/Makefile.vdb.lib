@@ -1,0 +1,23 @@
+# $Id: Makefile.vdb.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = vdb
+SRC = dbmgr-cmn schema-tok schema-parse schema-type schema-func schema-prod \
+      schema-expr schema-eval schema-tbl schema-db schema-dump schema-int \
+      schema linker-int linker-cmn database-cmn database-depend database-load \
+      table-cmn table-load cursor-cmn column-cmn prod-cmn prod-expr prod-func \
+      phys-cmn phys-load blob blob-headers page-map \
+      row-id row-len fixed-row-len merge split compare \
+      meta-read meta-value meta-attr-read cast range-validate parameter-read \
+      redimension index_project index_lookup transpose delta_average \
+      report-vdb dbmgr linker database table cursor column prod phys
+
+DLL_LIB = kdb$(DLL) vfs$(DLL) kfg$(DLL) kfs$(DLL) kproc$(DLL) klib$(DLL) \
+          $(Z_LIB)
+LIBS = $(Z_LIBS) $(ORIG_LIBS)
+
+CPPFLAGS = $(SRA_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY $(Z_INCLUDE) \
+           $(ORIG_CPPFLAGS)
+
+LIB_OR_DLL = both

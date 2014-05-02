@@ -1,0 +1,12 @@
+# $Id: Makefile.xalgovmerge.lib 208339 2010-10-15 18:36:18Z serovav $
+
+WATCHERS = dicuccio
+
+
+LIB = xalgovmerge
+
+SRC = volume_merge
+
+CXXFLAGS = $(FAST_CXXFLAGS)
+LDFLAGS  = $(FAST_LDFLAGS)
+

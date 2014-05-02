@@ -1,0 +1,19 @@
+# $Id: Makefile.kryptotest.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = kryptotest
+SRC = ciphermgr wgaencrypt encfile encfilev2 cipher aes_core aes-byte \
+      cipher-byte key reencfile cipher-vec.vec aes-ncbi.vec \
+      cipher-vec.vecreg aes-ncbi.vecreg cipher-vec.aes-ni aes-ncbi.aes-ni \
+      no-null-ncbi testcipher no-null-ncbi.vec no-null-ncbi.vecreg \
+      no-null-ncbi.aes-ni
+
+CPPFLAGS = -I$(srcdir) $(SRA_INCLUDE) $(OPENSSL_INCLUDE) \
+           $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY $(ORIG_CPPFLAGS)
+DLL_LIB = kfg$(DLL) kfs$(DLL) kproc$(DLL) klib$(DLL)
+# LIBS = $(OPENSSL_LIBS) $(NETWORK_LIBS) $(ORIG_LIBS)
+
+LIB_OR_DLL = both
+
+REQUIRES = Linux GCC

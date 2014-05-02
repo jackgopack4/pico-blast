@@ -1,0 +1,73 @@
+# $Id: Makefile.xcd_utils.lib 268735 2011-03-29 15:27:51Z lanczyck $
+
+# Build library "xcd_utils"
+##################################
+
+WATCHERS = lanczyck cliu 
+
+REQUIRES = objects
+
+ASN_DEP = ncbimime taxon1 id1 blastdb entrez2
+
+LIB = xcd_utils
+
+SRC = \
+    cuAlign \
+    cuAlignedDM \
+    cuAlignmentCollection \
+    cuBaseClusterer \
+    cuBlast2Seq \
+    cuBlock \
+    cuBlockExtender \
+    cuBlockFormater \
+    cuBlockIntersector \
+    cuBookRefUtils \
+    cuCD \
+    cuCdCore \
+    cuCdAnnotation \
+    cuCdFamily \
+    cuCdFromFasta \
+    cuCdUpdater \
+    cuCdUpdateParameters \
+    cuConsensusMaker \
+    cuDbPriority \
+    cuDistmat \
+    cuDmAlignedOptimalScore \
+    cuDmAlignedscore \
+    cuDmBlastscore \
+    cuDmIdentities \
+    cuFlexiDm \
+    cuHitsDistributor \
+    cuMatrix \
+    cuNRCriteria \
+    cuPrefTaxNodes \
+    cuPssmMaker \
+    cuPssmScorer \
+    cuReadFastaWrapper \
+    cuResidueProfile \
+    cuRowSourceTable \
+    cuScoringMatrix \
+    cuSeqAnnotFromFasta \
+    cuSeqSwapper \
+    cuSeqtree \
+    cuSeqTreeAlg \
+    cuSeqTreeAPI \
+    cuSeqTreeAsnizer \
+    cuSeqTreeFactory \
+    cuSeqTreeNj \
+    cuSeqTreeRootedLayout \
+    cuSeqTreeSlc \
+    cuSeqTreeStream \
+    cuSequence \
+    cuSequenceTable \
+    cuSimpleB2SWrapper \
+    cuSort  \
+    cuStdAnnotTypes \
+    cuTaxClient \
+    cuTaxNRCriteria \
+    cuTaxTree \
+    cuUtils
+
+DLL_LIB = xobjread
+
+CPPFLAGS = $(ORIG_CPPFLAGS)

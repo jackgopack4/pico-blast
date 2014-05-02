@@ -1,0 +1,8 @@
+# $Id: Makefile.xobjmanip.lib 190691 2010-05-04 15:42:43Z vakatov $
+
+ASN_DEP = general
+
+LIB = xobjmanip
+SRC = sage_manip
+
+WATCHERS = dicuccio

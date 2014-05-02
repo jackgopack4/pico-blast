@@ -1,0 +1,10 @@
+# $Id: Makefile.wsradb.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = wsradb
+SRC = sramgr-cmn sratbl-cmn sracol types wsramgr wsratbl
+DLL_LIB = sraschema$(FORCE_STATIC) wvdb$(DLL) wkdb$(DLL) kfs$(DLL) vfs$(DLL) \
+          kfg klib$(DLL)
+
+CPPFLAGS = $(SRA_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY $(ORIG_CPPFLAGS)

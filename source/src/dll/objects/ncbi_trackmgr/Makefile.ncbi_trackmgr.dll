@@ -1,0 +1,10 @@
+# $Id: Makefile.ncbi_trackmgr.dll 371957 2012-08-14 00:00:21Z ucko $
+
+DLL = ncbi_trackmgr
+
+HOSTED_LIBS = trackmgr trackmgrcli
+
+DEPENDENCIES = ncbi_seq ncbi_pub ncbi_general ncbi_core
+
+CPPFLAGS = -DNCBI_TRACKMGRASN_EXPORTS
+

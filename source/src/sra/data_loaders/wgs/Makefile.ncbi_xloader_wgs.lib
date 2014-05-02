@@ -1,0 +1,20 @@
+# $Id: Makefile.ncbi_xloader_wgs.lib 374078 2012-09-05 21:09:23Z vasilche $
+
+# Build library "ncbi_xloader_wgs"
+###############################
+
+LIB = ncbi_xloader_wgs
+SRC = wgsloader wgsloader_impl
+
+REQUIRES = objects
+
+ASN_DEP = seqset seq
+
+LIB_OR_DLL = both
+
+DLL_LIB = $(SOBJMGR_LIBS) sraread$(STATIC) $(SRAREAD_LDEP) $(CMPRS_LIB)
+LIBS =  $(CMPRS_LIBS) $(ORIG_LIBS)
+
+CPPFLAGS = $(SRA_INCLUDE) -DNCBI_XLOADER_WGS_EXPORTS $(ORIG_CPPFLAGS)
+
+WATCHERS = vasilche

@@ -1,0 +1,17 @@
+# $Id: Makefile.xngalign.lib 208339 2010-10-15 18:36:18Z serovav $
+
+WATCHERS = boukn dicuccio
+
+ASN_DEP = xnetblast
+
+SRC = result_set  sequence_set   \
+      alignment_filterer  alignment_scorer  \
+      blast_aligner  banded_aligner  merge_aligner  inversion_merge_aligner   \
+      ngalign  \
+      unordered_spliter
+#     overlap_aligner equiv_range new_merge_aligner
+
+LIB = xngalign
+
+CXXFLAGS = $(FAST_CXXFLAGS) -I./. 
+LDFLAGS  = $(FAST_LDFLAGS)

@@ -1,0 +1,14 @@
+# $Id: Makefile.kff.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = kff
+SRC = fileformat ffext ffkey
+UNIX_SRC = xffmagic
+
+CPPFLAGS = $(SRA_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY $(MAGIC_INCLUDE) \
+           $(ORIG_CPPFLAGS)
+
+DLL_LIB = kfs$(DLL) klib$(DLL)
+# Ideally also kfg$(DLL), but that breaks traditional recursive builds. :-/
+LIBS = $(MAGIC_LIBS) $(ORIG_LIBS)

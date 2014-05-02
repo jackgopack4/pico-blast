@@ -1,0 +1,26 @@
+# $Id: Makefile.judy.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = judy
+
+# The real sources are in the judy subdirectory, but most need to be
+# compiled with multiple sets of flags anyway, at which point the
+# wrappers may as well be here to avoid having to jump through further
+# hoops to make the library available for klib.
+
+SRC = JudyMalloc JudySL JudyHS JudyGet_w JudyIns_w JudyInsArray_w JudyDel_w \
+      JudyCascade_w JudyCount_w JudyCreateBranch_w JudyDecascade_w \
+      JudyFirst_w JudyFreeArray_w JudyInsertBranch_w JudyMallocIF_w \
+      JudyMemActive_w JudyMemUsed_w JudyNext_w JudyNextEmpty_w JudyPrev_w \
+      JudyPrevEmpty_w JudyByCountWithDefs_w j__udyGet_w JudyLTables_w \
+      JudyGet_b JudyIns_b JudyInsArray_b JudyDel_b JudyCascade_b JudyCount_b \
+      JudyCreateBranch_b JudyDecascade_b JudyFirst_b JudyFreeArray_b \
+      JudyInsertBranch_b JudyMallocIF_b JudyMemActive_b JudyMemUsed_b \
+      JudyNext_b JudyNextEmpty_b JudyPrev_b JudyPrevEmpty_b \
+      JudyByCountWithDefs_b j__udyGet_b Judy1Tables_b
+
+CPPFLAGS = -I$(srcdir)/judy -I$(srcdir) $(SRA_INCLUDE) \
+           $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY $(ORIG_CPPFLAGS)
+
+LIB_OR_DLL = lib

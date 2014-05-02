@@ -1,0 +1,18 @@
+# $Id: Makefile.blastdbcheck.app 379598 2012-11-02 13:11:58Z camacho $
+
+WATCHERS = maning 
+
+APP = blastdbcheck
+SRC = blastdbcheck
+
+LIB_ = $(BLAST_INPUT_LIBS) $(BLAST_LIBS) $(OBJMGR_LIBS)
+LIB = $(LIB_:%=%$(STATIC))
+
+CFLAGS   = $(FAST_CFLAGS)
+CXXFLAGS = $(FAST_CXXFLAGS)
+LDFLAGS  = $(FAST_LDFLAGS)
+
+CPPFLAGS = -DNCBI_MODULE=BLASTDB $(ORIG_CPPFLAGS)
+LIBS = $(CMPRS_LIBS) $(DL_LIBS) $(NETWORK_LIBS) $(ORIG_LIBS)
+
+REQUIRES = objects -Cygwin

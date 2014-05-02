@@ -1,0 +1,11 @@
+# $Id: Makefile.clog.lib 341539 2011-10-20 15:06:53Z ivanov $
+
+SRC = ncbi_c_log
+
+LIB = clog
+LIBS = $(ORIG_C_LIBS)
+
+# You can hardcode applicationa name used for logging specifying it here:
+# CPPFLAGS = $(ORIG_CPPFLAGS) -D NCBI_C_LOG_APPNAME=test_clog_ctx
+
+WATCHERS = ivanov 

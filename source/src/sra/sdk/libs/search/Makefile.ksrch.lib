@@ -1,0 +1,37 @@
+# $Id: Makefile.ksrch.lib 16076 2013-05-19 02:07:57Z ucko $
+
+WATCHERS = ucko
+
+LIB = ksrch
+SRC = search fgrep-dumb fgrep-boyermoore fgrep-aho \
+      agrep-wumanber agrep-myers agrep-myersunltd agrep-dp \
+      nucstrstr-generic
+UNIX_SRC = nucstrstr-icc
+
+CPPFLAGS = $(SRA_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY $(ORIG_CPPFLAGS)
+
+DLL_LIB = klib
+
+LIB_OR_DLL = both
+
+PFLAG_gcc = -pg
+PFLAG_icc = -p
+PFLAG = $(PFLAG_$(COMPILER))
+ASMFLAGS_ALL = $(CFLAGS_ALL:$(PFLAG)=$(PFLAG) -DNCBI_PROFILED_BUILD)
+
+# On Solaris, the lorder/tsort combination, which we use only to make
+# static linking slightly faster, deals badly with objects such as
+# nucstrstr-icc.o that define no symbols there; suppress it accordingly.
+LORDER = echo
+TSORT  = cat
+
+%.o: ./%.S
+	$(CC_WRAPPER) $(CC) $(ASMFLAGS_ALL) $< -o $@ $(CC_FILTER)
+%.o: $(srcdir)/%.S
+	$(CC_WRAPPER) $(CC) $(ASMFLAGS_ALL) $< -o $@ $(CC_FILTER)
+%.d: ./%.S ./Makefile.ksrch.lib
+	@echo Updating dependency information for $<.
+	@echo '$*.o $@ : $< nucstrstr-selector.h' > $@
+%.d: $(srcdir)/%.S $(srcdir)/Makefile.ksrch.lib
+	@echo Updating dependency information for $<.
+	@echo '$*.o $@ : $$(srcdir)/$*.S $$(srcdir)/nucstrstr-selector.h' > $@

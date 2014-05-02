@@ -1,0 +1,6 @@
+# $Id: Makefile.esummary.lib 190691 2010-05-04 15:42:43Z vakatov $
+
+LIB = esummary
+SRC = esummary__ esummary___
+
+WATCHERS = grichenk

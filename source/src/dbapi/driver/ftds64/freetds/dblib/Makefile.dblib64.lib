@@ -1,0 +1,10 @@
+# $Id: Makefile.dblib64.lib 370257 2012-07-27 14:56:37Z ivanovp $
+
+LIB = sybdb_ftds64
+SRC = bcp dblib dbopen dbutil rpc xact
+
+DLL_LIB = tds_ftds64
+
+CPPFLAGS = -D_FREETDS_LIBRARY_SOURCE -DHAVE_CONFIG_H=1 $(FTDS64_INCLUDE) $(ORIG_CPPFLAGS)
+
+WATCHERS = ucko

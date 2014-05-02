@@ -1,0 +1,13 @@
+# $Id: Makefile.cddalignview.lib 208341 2010-10-15 18:36:58Z serovav $
+
+WATCHERS = thiessen
+
+ASN_DEP = seq cdd ncbimime
+
+SRC = \
+	cav_alignset \
+	cav_alndisplay \
+	cav_function \
+	cav_seqset
+
+LIB = xcddalignview

@@ -1,0 +1,18 @@
+# $Id: Makefile.klib.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = klib
+SRC = text utf8 iso8859 iso8859-1 cp1252 token symtab container vector \
+      namelist vector_namelist trie pbstree pbstree-native pbstree-swapped \
+      bstpersist ptrie ptpersist crc32 md5 SHA-32bit SHA-64bit \
+      qsort ksort bsearch pack unpack vlen-encode data-buffer refcount printf \
+      status-rc-strings status-rc syserrcode syswriter out status \
+      log writer syslog systime rc-tbl rc-idx-tbl judy-vector report xdebug
+
+CPPFLAGS = -I$(srcdir) $(SRA_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY \
+           $(ORIG_CPPFLAGS)
+
+LIB_OR_DLL = both
+
+DLL_LIB = judy$(FORCE_STATIC)

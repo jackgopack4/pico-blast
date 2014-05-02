@@ -1,0 +1,12 @@
+# $Id: Makefile.ncbi_xdbapi_ftds.dll 108294 2007-08-06 17:29:58Z Gouriano $
+
+DLL = ncbi_xdbapi_ftds
+
+HOSTED_LIBS    = ncbi_xdbapi_ftds
+
+DEPENDENCIES   = ncbi_core ncbi_dbapi_driver
+
+#CPPFLAGS = -DNCBI_DBAPIDRIVER_DBLIB_EXPORTS
+CPPFLAGS = -DNCBI_DBAPIDRIVER_CTLIB_EXPORTS
+
+

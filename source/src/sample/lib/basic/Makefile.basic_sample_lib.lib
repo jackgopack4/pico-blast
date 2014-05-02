@@ -1,0 +1,7 @@
+# $Id: Makefile.basic_sample_lib.lib 190691 2010-05-04 15:42:43Z vakatov $
+
+LIB = basic_sample_lib
+SRC = basic_sample_lib
+
+
+WATCHERS = gouriano

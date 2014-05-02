@@ -1,0 +1,16 @@
+# $Id: Makefile.cobalt.lib 208339 2010-10-15 18:36:18Z serovav $
+
+WATCHERS = boratyng dicuccio 
+
+SRC_CXX = blast cobalt dist hit hitlist phi prog \
+          resfreq rps seg seq seqalign traceback tree kmercounts clusterer patterns options \
+          links
+    
+SRC   = $(SRC_CXX)
+
+LIB = cobalt
+
+ASN_DEP = seq seqset biotree xnetblast blastdb
+
+CXXFLAGS  = $(FAST_CXXFLAGS)
+LDFLAGS = $(FAST_LDFLAGS)

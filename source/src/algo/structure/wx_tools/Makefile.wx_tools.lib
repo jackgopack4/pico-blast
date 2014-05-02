@@ -1,0 +1,13 @@
+# $Id: Makefile.wx_tools.lib 128326 2008-05-21 15:57:16Z thiessen $
+#
+# GUI to set options for Block Multiple Alignment Refiner library
+#
+##########################################
+
+REQUIRES = wxWidgets
+
+LIB =   wx_tools
+
+SRC =   wx_tools
+
+CPPFLAGS = $(ORIG_CPPFLAGS) $(WXWIDGETS_INCLUDE)

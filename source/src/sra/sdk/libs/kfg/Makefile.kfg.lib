@@ -1,0 +1,12 @@
+# $Id: Makefile.kfg.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = kfg
+SRC = config-grammar config-lex config repository report
+
+CPPFLAGS = $(SRA_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY $(ORIG_CPPFLAGS)
+
+DLL_LIB = kfs klib
+
+LIB_OR_DLL = both

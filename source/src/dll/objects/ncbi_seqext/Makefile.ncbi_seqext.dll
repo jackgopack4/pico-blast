@@ -1,0 +1,33 @@
+# $Id: Makefile.ncbi_seqext.dll 312956 2011-07-18 13:53:16Z ludwigf $
+
+DLL = ncbi_seqext
+
+HOSTED_LIBS    = xalnmgr   \
+                 xobjmgr   \
+                 xobjread  \
+                 xobjreadex\
+                 xobjwrite \
+                 xobjutil  \
+                 xobjmanip \
+                 xformat   \
+                 seqdb     \
+                 gene_info \
+                 writedb   \
+                 id1       \
+                 id1cli    \
+                 id2       \
+                 id2cli    \
+                 id2_split \
+                 seqsplit  \
+                 seqmasks_io \
+                 xobjedit  \
+                 xcleanup  \
+                 valerr    \
+                 blast_services \
+                 blastdb_format \
+                 snputil
+
+DEPENDENCIES = ncbi_core ncbi_general ncbi_pub ncbi_misc ncbi_seq ncbi_dbapi_driver
+
+CPPFLAGS = -DNCBI_SEQEXT_EXPORTS
+

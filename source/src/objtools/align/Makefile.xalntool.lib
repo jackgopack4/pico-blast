@@ -1,0 +1,8 @@
+# $Id: Makefile.xalntool.lib 208341 2010-10-15 18:36:58Z serovav $
+
+WATCHERS = jianye
+
+ASN_DEP = seqset
+
+LIB = xalntool
+SRC = alngraphic

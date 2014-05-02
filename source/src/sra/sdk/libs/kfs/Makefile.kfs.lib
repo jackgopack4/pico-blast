@@ -1,0 +1,22 @@
+# $Id: Makefile.kfs.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = kfs
+SRC = mmap directory arrayfile file sysdir sysfile sysmmap syslockfile sysdll \
+      gzip bzip md5 crc32 arc toc tocentry tocdir tocfile sra tar \
+      teefile buffile buffile-read buffile-write subfile nullfile countfile \
+      dir_test pagefile pmem readheadfile ramfile quickmount report lockfile \
+      cacheteefile
+
+CPPFLAGS = -I$(srcdir) $(SRA_INCLUDE) $(Z_INCLUDE) $(BZ2_INCLUDE) \
+           $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY -DALWAYS_ADD_EXE $(ORIG_CPPFLAGS)
+
+DLL_LIB = kproc$(DLL) klib$(DLL) $(Z_LIB) $(BZ2_LIB)
+# sz$(DLL)
+LIBS = $(DL_LIBS) $(Z_LIBS) $(BZ2_LIBS) $(ORIG_LIBS)
+
+LIB_OR_DLL = both
+
+# loosen extension sanity check
+sysdll.o: DLL=

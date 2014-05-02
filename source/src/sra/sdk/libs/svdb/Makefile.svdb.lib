@@ -1,0 +1,14 @@
+# $Id: Makefile.svdb.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = svdb
+SRC = svdb
+
+DLL_LIB = srapath sraschema align-reader $(EXT_SCHEMA_MODULES) vfs krypto \
+          ksrch vdb kdb kfg kfs kproc klib $(Z_LIB) $(BZ2_LIB)
+LIBS = $(DL_LIBS) $(Z_LIBS) $(BZ2_LIBS) $(ORIG_LIBS)
+
+CPPFLAGS = $(SRA_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY $(ORIG_CPPFLAGS)
+
+LIB_OR_DLL = both

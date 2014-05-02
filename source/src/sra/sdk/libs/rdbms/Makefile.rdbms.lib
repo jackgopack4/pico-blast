@@ -1,0 +1,11 @@
+# $Id: Makefile.rdbms.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = rdbms
+SRC = rdbms sybase
+
+CPPFLAGS = $(SRA_INCLUDE) $(FTDS_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY \
+           $(ORIG_CPPFLAGS)
+
+# REQUIRES = unix

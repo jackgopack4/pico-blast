@@ -1,0 +1,15 @@
+# $Id: Makefile.align-writer.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = align-writer
+SRC = dna-reverse-cmpl reader-cmn reference-cmn reader-refseq refseq-mgr \
+      writer-cmn writer-refseq writer-alignment writer-sequence writer-ref \
+      writer-reference
+
+DLL_LIB = wvdb wkdb kfg kfs klib $(Z_LIB)
+LIBS = $(Z_LIBS) $(ORIG_LIBS)
+
+CPPFLAGS = $(SRA_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY $(ORIG_CPPFLAGS)
+
+LIB_OR_DLL = $(USUAL_AND_LIB)

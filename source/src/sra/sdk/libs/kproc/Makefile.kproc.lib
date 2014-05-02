@@ -1,0 +1,15 @@
+# $Id: Makefile.kproc.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = kproc
+SRC = task procmgr systimeout syslock systhread syscond xsem
+
+CPPFLAGS = -I$(srcdir) $(SRA_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY \
+           $(ORIG_CPPFLAGS)
+
+DLL_LIB = klib
+
+LIB_OR_DLL = both
+
+# REQUIRES = unix

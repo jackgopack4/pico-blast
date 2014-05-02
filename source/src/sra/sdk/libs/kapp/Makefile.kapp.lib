@@ -1,0 +1,13 @@
+# $Id: Makefile.kapp.lib 14717 2013-03-08 15:25:05Z ucko $
+
+WATCHERS = ucko
+
+LIB = kapp
+SRC = main args tokenizer sysmain
+
+CPPFLAGS = $(SRA_INCLUDE) $(SRA_INTERNAL_CPPFLAGS) -D_LIBRARY $(ORIG_CPPFLAGS)
+DLL_LIB = vfs$(DLL) klib$(DLL)
+
+# REQUIRES = unix
+
+LIB_OR_DLL = $(USUAL_AND_LIB)
