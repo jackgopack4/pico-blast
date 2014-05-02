@@ -20,6 +20,12 @@
 * Copyright     : 2013, Pico Computing, Inc.
 */
 
+/* Traceback calculation
+* Description	: Created a new thread for receiving the traceback matrix from the FPGA via stream
+*		  Calling a function which constructs the traceback matrix with either a match or a gap value in it
+*
+*/
+
 #include "CParams.h"
 #include "kseq.h"
 #include "PicoSW.h"
@@ -455,11 +461,12 @@ int main(int argc, char* argv[]) {
     }
 
     printf("Starting traceback calculation.\n");
+    //The maximum possible value of th traceback matrix
     int traceback_size = query_db_info[0].start_info.query_seq->seq.l + query_db_info[0].start_info.db_seq->seq.l - 1;
     printf("%zd\t%zd\n", query_db_info[0].start_info.query_seq->seq.l, query_db_info[0].start_info.db_seq->seq.l);
     printf("%d\n", traceback_size);
     int * traceback = new int[traceback_size];
-    printf("memory allocated\n");
+ //   printf("memory allocated\n");
 
     // // Perform traceback calculation
     err = trace_matrix_generate(traceback, query_db_info[0].traceback_buffer, 
