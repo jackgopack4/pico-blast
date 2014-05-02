@@ -90,12 +90,18 @@ typedef struct StreamInfo {
     pthread_t       thread;
     PicoDrv*        pico;
     int             stream;
-    int             traceback_stream;
+    int             traceback_stream[8];
     fpga_cfg_t*     cfg;
     StartInfo_t     start_info;
     EndInfo_t       end_info;
-    uint64_t*       traceback_buffer;
+    uint64_t*       traceback_buffer[8];
 } StreamInfo_t;
+
+typedef struct args {
+  StreamInfo_t* streaminfo;
+  int thread_index;
+  int buffer_length;
+} args_t;
 
 ///////////////
 // CONSTANTS //

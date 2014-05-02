@@ -254,40 +254,54 @@ int ReceiveScore(StreamInfo_t* info){
 // in this method, we ONLY receive the traceback data.  we do not actually compute any traceback info
 void * traceback(void* arg){
 
-    StreamInfo_t *info = (StreamInfo_t *)arg;
-    printf("Reading the resulting traceback from the FPGA\n");
+  args_t *a = (args_t *) arg;
+  StreamInfo_t *info = a->streaminfo;
+  int index = a->thread_index;
+  printf("Reading the resulting traceback from the FPGA\n");
 
-    int         err;
-    kseq_t*     query           = info->start_info.query_seq;
-    kseq_t*     db              = info->start_info.db_seq;
-    uint64_t*    rx_buf;
-    int         buf_size;
-    int         buf_len;
-    char            ibuf    [1024];
+  int         err;
+  kseq_t*     query           = info->start_info.query_seq;
+  kseq_t*     db              = info->start_info.db_seq;
+  uint64_t*    rx_buf;
+  int         buf_size;
+  int         buf_len;
+  char            ibuf    [1024];
     
-    // first we create a buffer which we are going to use for receiving our data
-    buf_len         = (query->seq.l + db->seq.l - 1) * 2;
-    buf_size        = sizeof(uint64_t) * buf_len;
-    printf("Creating uint64_t buffer w/ %i entries, %i B per entry, %i B total\n", buf_len, (int) sizeof(uint64_t), buf_len*((int)sizeof(uint64_t)));
-    rx_buf          = (uint64_t*) calloc(buf_len, sizeof(uint64_t));
-    printf("Finished initializing buffer %d.\n", buf_size);
-    // receive the contents of buffer from the FPGA
-    if (VERBOSE) printf("Reading %i B from stream handle %i\n", buf_size, info->traceback_stream);
-    if ((err = info->pico->ReadStream(info->traceback_stream, rx_buf, buf_size)) < 0){
-        fprintf(stderr, "RunBitFile error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
-        exit(EXIT_FAILURE);
-    }
+  // first we create a buffer which we are going to use for receiving our data
+  //  buf_len         = a->buffer_length;
+  buf_len = (query->seq.l + db->seq.l - 1) *2;
+  buf_size        = sizeof(uint64_t) * buf_len;
+  printf("Thread %d, Creating uint64_t buffer w/ %i entries, %i B per entry, %i B total\n", index, buf_len, (int) sizeof(uint64_t), buf_len*((int)sizeof(uint64_t)));
+  rx_buf          = (uint64_t*) calloc(buf_len, sizeof(uint64_t));
+  printf("Thread %d, Finished initializing buffer %d.\n", index, buf_size);
+  // receive the contents of buffer from the FPGA
+  if (VERBOSE) printf("Thread %d, Reading %i B from stream handle %i\n", index, buf_size, info->traceback_stream[index]);
+  if ((err = info->pico->ReadStream(info->traceback_stream[index], rx_buf, buf_size)) < 0){
+    fprintf(stderr, "RunBitFile error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
+    exit(EXIT_FAILURE);
+  }
 
-    // print out the data that we just received
-    printf("All traceback data received\n");
-    if (VERBOSE) 
-        for (int i=0; i < buf_len; i++)
-            printf("%lx\n", rx_buf[i]);
-    
+  // if (VERBOSE) 
+  //   for (int i=0; i < buf_len; i++)
+  //     printf("%lx\n", rx_buf[i]);
 
-    info->traceback_buffer = rx_buf;
-    printf("Thread complete.\n");
+  info->traceback_buffer[index] = rx_buf;
+  printf("Thread %d complete.\n", index);
 }
+
+int combineStreamData(uint64_t **stream_data, int num_streams, int length, uint64_t* out_buffer) {
+  
+  int index = 0;
+  for (int l=0; l<length*4; l+=2){
+    for (int s=0; s<num_streams; s++) {
+      out_buffer[index++] = stream_data[s][l];
+      out_buffer[index++] = stream_data[s][l+1];
+    }
+  }
+
+  return 0;
+}
+
 
 //////////
 // MAIN //
@@ -427,22 +441,32 @@ int main(int argc, char* argv[]) {
     // RECEIVE RESULT FROM OUTPUT //
     ////////////////////////////////
     
-    // Create traceback stream
-    if ((err = aligner->CreateStream(12)) < 0){
-      fprintf(stderr, "CreateStream error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
-      return EXIT_FAILURE;
-    }
-    query_db_info[0].traceback_stream = err;
+    // Create traceback stream(s)
+    pthread_t traceback_thread[8];
+    int size = get_size(query_db_info[0].start_info.query_seq->seq.l);
+    int buffer_length = (query_db_info[0].start_info.query_seq->seq.l + query_db_info[0].start_info.db_seq->seq.l - 1) *2;
+    args_t *a = new args_t[size];
+    for (int n=0; n<size; n++){
+      if ((err = aligner->CreateStream(12+n)) < 0){
+	fprintf(stderr, "CreateStream error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
+	return EXIT_FAILURE;
+      }
+      query_db_info[0].traceback_stream[n] = err;
 
-    // Create thread to read traceback stream into buffer
-    pthread_t traceback_thread;
-    uint64_t *traceback_buffer;
-    err = pthread_create(&traceback_thread, NULL, traceback, (void *) &query_db_info[0]);
-    if (err != 0){
-      fprintf(stderr, "Thread creation error: %d\n", err);
-      return EXIT_FAILURE;
+      // Create thread to read traceback stream into buffer
+      a[n].streaminfo = &query_db_info[0];
+      a[n].thread_index = n;
+      if (buffer_length <= (64 + query_db_info[0].start_info.db_seq->seq.l - 1)*2)
+	a[n].buffer_length = buffer_length;
+      else 
+	a[n].buffer_length = (64 + query_db_info[0].start_info.db_seq->seq.l - 1)*2;
+      buffer_length -= (64 + query_db_info[0].start_info.db_seq->seq.l - 1)*2;
+      err = pthread_create(&traceback_thread[n], NULL, traceback, (void *) &a[n]);
+      if (err != 0){
+	fprintf(stderr, "Thread creation error: %d\n", err);
+	return EXIT_FAILURE;
+      }
     }
-
     // this just returns the score
     // we can add a LOT more functionality here if we want
     printf("Reading the resulting score from the FPGA\n");
@@ -455,21 +479,39 @@ int main(int argc, char* argv[]) {
             query_db_info[0].end_info.globalTargetBase);
 
     // Wait for traceback thread to finish reading
-    if ((err = pthread_join(traceback_thread, NULL)) != 0){
-      fprintf(stderr, "Thread join error: %d\n", err);
-      return EXIT_FAILURE;
+    for (int n=0; n<size; n++){
+      if ((err = pthread_join(traceback_thread[n], NULL)) != 0){
+	fprintf(stderr, "Thread join error: %d\n", err);
+	return EXIT_FAILURE;
+      }
     }
+
+    if (VERBOSE)
+      printf("Combining stream data.\n");
+    int traceback_size = query_db_info[0].start_info.query_seq->seq.l + query_db_info[0].start_info.db_seq->seq.l - 1;
+    uint64_t *buffer = (uint64_t *)calloc(traceback_size*2*size, sizeof(uint64_t));
+    combineStreamData(&(query_db_info[0].traceback_buffer[0]), size, traceback_size, buffer);
+		      
+    // print out the data that we just received
+    printf("All traceback data received\n");
+    if (VERBOSE) 
+      for (int i=0; i < traceback_size*4; i++)
+    	printf("index: %d, %lx\n", i, buffer[i]);
+    // for (int i=0; i < 2; i++){
+    //   for (int s=0; s<traceback_size*2; s++){
+    // 	printf("Thread %d, index %d:  %lx\n", i, s, query_db_info[0].traceback_buffer[i][s]);
+    //   }
+    // }
 
     printf("Starting traceback calculation.\n");
     //The maximum possible value of th traceback matrix
-    int traceback_size = query_db_info[0].start_info.query_seq->seq.l + query_db_info[0].start_info.db_seq->seq.l - 1;
     printf("%zd\t%zd\n", query_db_info[0].start_info.query_seq->seq.l, query_db_info[0].start_info.db_seq->seq.l);
     printf("%d\n", traceback_size);
     int * traceback = new int[traceback_size];
  //   printf("memory allocated\n");
 
     // // Perform traceback calculation
-    err = trace_matrix_generate(traceback, query_db_info[0].traceback_buffer, 
+    err = trace_matrix_generate(traceback, buffer,
     				query_db_info[0].start_info.query_seq->seq.l,  
     				query_db_info[0].start_info.db_seq->seq.l);
 
@@ -490,15 +532,17 @@ int main(int argc, char* argv[]) {
     /////////////
 
     // close the input and output files for sequences
-    free(query_db_info[0].traceback_buffer);
     kseq_destroy(querySeq);
     gzclose(queryFile);
     kseq_destroy(dbSeq);
 	gzclose(dbFile);
 
     // free up allocated memory
-	delete      aligner;
-    delete []   query_db_info;
+    for (int n=0; n<get_size(query_db_info[0].start_info.query_seq->seq.l); n++){
+      free(query_db_info[0].traceback_buffer[n]);
+    }
+	   delete      aligner;
+	 delete []   query_db_info;
 
-	return EXIT_SUCCESS;
+	 return EXIT_SUCCESS;
 }

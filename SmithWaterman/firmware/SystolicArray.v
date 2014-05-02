@@ -145,7 +145,7 @@ module SystolicArray #(
     input 		       ScoreReady, // output is ready to accept another score when this is asserted
 
     // traceback
-    output [127:0] 	       TracebackData, // global alignment score
+    output [`TRACEBACK_WIDTH-1:0] TracebackData, // global alignment score
     output reg		       TracebackValid, // both global and local scores are valid when this is asserted
     input 		       TracebackReady, // output is ready to accept another score when this is asserted
     

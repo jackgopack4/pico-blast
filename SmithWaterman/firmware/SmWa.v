@@ -93,7 +93,7 @@ module SmWa #(
     // the software
     output 			traceback_valid,
     input 			traceback_ready,
-    output [127:0] 		traceback_data,
+    output [`TRACEBACK_WIDTH-1:0]  traceback_data,
     
     // Scoring Matrix, which is set via the PicoBus
     // Note: these should be signed 2's complement numbers
@@ -185,7 +185,7 @@ module SmWa #(
     wire                                scoreReady;
 
     // data from the systolic array to the traceback FIFO
-    wire    [127:0] 			tracebackData;
+    wire    [`TRACEBACK_WIDTH-1:0]		tracebackData;
     wire 				tracebackValid;
     wire                                tracebackReady;
 
@@ -447,7 +447,7 @@ module SmWa #(
     assign tracebackReady = ~tracebackFifoFull;
     assign traceback_valid = ~tracebackFifoEmpty;
     asyncFifoBRAM #(
-        .WIDTH      (128)
+        .WIDTH      (`TRACEBACK_WIDTH)
     ) tracebackFifo (
         .wr_clk     (clkSmWa),
         .wr_rst     (rstSmWa),

@@ -233,6 +233,10 @@ module PicoSmithWaterman #(
     output 			     s12o_valid,
     input 			     s12o_rdy,
     output [`STREAM12_OUT_WIDTH-1:0] s12o_data,
+    output 			     s13o_valid,
+    input 			     s13o_rdy,
+    output [`STREAM13_OUT_WIDTH-1:0] s13o_data,
+
 
 
     ///////////////////
@@ -413,7 +417,7 @@ module PicoSmithWaterman #(
     // this is the traceback data that comes out of the SmWaWrapper module
     wire 				so_valid_trace;
     wire 				so_rdy_trace;
-    wire [127:0] 			so_data_trace;
+    wire [`TRACEBACK_WIDTH-1:0]		so_data_trace;
     
     // Output signals
     wire                                so_valid        [0:NUM_SW_UNITS-1];
@@ -446,8 +450,12 @@ module PicoSmithWaterman #(
         assign so_rdy   [0] = s1o_rdy;
 
         assign s12o_valid   = so_valid_trace;
-        assign s12o_data    = so_data_trace;
+        assign s12o_data    = so_data_trace[127:0];
         assign so_rdy_trace = s12o_rdy;
+   
+        assign s13o_valid   = so_valid_trace;
+        assign s13o_data    = so_data_trace[255:128];
+        assign so_rdy_trace = s13o_rdy; //todo: combine dont overwrite
    
     `endif  // SW_UNITS_1
     `ifdef  SW_UNITS_2
@@ -727,9 +735,9 @@ module PicoSmithWaterman #(
             .s1o_data                   (so_data_SmWa   [unit]),
     
             // output traceback stream
-            .s2o_valid                  (so_valid_trace),
-            .s2o_rdy                    (so_rdy_trace ),
-            .s2o_data                   (so_data_trace),
+            .traceback_valid                  (so_valid_trace),
+            .traceback_rdy                    (so_rdy_trace ),
+            .traceback_data                   (so_data_trace),
     
             // PicoBus signals
             .PicoClk                    (PicoClk),

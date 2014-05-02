@@ -86,9 +86,9 @@ module SmWaWrapper #(
     output [SCORE_STREAM_W-1:0] s1o_data,
 
      // These are the signals for stream #1 OUT of the firmware.
-    output 			s2o_valid,
-    input 			s2o_rdy,
-    output [127:0] 		s2o_data,
+    output 			traceback_valid,
+    input 			traceback_rdy,
+    output [`TRACEBACK_WIDTH-1:0] 		traceback_data,
 
     // These are the standard PicoBus signals that we'll use to communicate with the rest of the system.
     input 			PicoClk, 
@@ -237,9 +237,9 @@ module SmWaWrapper #(
         .score_data                     (s1o_data),
 
         // traceback output stream
-        .traceback_valid                    (s2o_valid),
-        .traceback_ready                    (s2o_rdy),
-        .traceback_data                     (s2o_data),
+        .traceback_valid                    (traceback_valid),
+        .traceback_ready                    (traceback_rdy),
+        .traceback_data                     (traceback_data),
 
         // affine-gap score inputs
         .match                          (match),
