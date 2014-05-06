@@ -197,7 +197,10 @@ static int s_BlastNaScanSubject_8_4(const LookupTableWrap * lookup_wrap,
   PicoDrv    *pico;
   const char* bitFileName;
   
-  const BLAST_SequenceBlk *query;
+  BLAST_SequenceBlk *query;
+  query = (BLAST_SequenceBlk *)malloc(sizeof(BLAST_SequenceBlk));
+  int a[]={1,45,77,34};
+  query->sequence = a;
 
   int *s = subject->sequence; // Pointer for current address of database index
   int *abs_start, *s_end; // Pointer for address of absolute start, end
@@ -254,25 +257,27 @@ static int s_BlastNaScanSubject_8_4(const LookupTableWrap * lookup_wrap,
   }
   
   abs_start = subject->sequence;
-  printf("Absolute start address of subject sequence is: 0x%08x", abs_start);
+  printf("Absolute start address of subject sequence is: %p \n", abs_start);
   s = abs_start + scan_range[0] / COMPRESSIONRATIO;     // 4 bases per byte
   s_end = abs_start + scan_range[1] / COMPRESSIONRATIO;
   q = query->sequence;
   // Write the query of given length to an address in the FPGA
   current_query_index = 0;
-  printf("Begin writing query to register in FPGA");
+  printf("Begin writing query to register in FPGA \n");
   while(current_query_index < queryLengthBytes) {
     pico->WriteDeviceAbsolute(QUERYADDRESS, abs_start, FULL_128_BITS);
     current_query_index+=FULL_128_BITS;
   }
-  // Stream out the database in compressed format 
+//  // Stream out the database in compressed format 
   current_database_index = 0;
   unsigned int database_stream_length = (uint32_t)(scan_range[1] - scan_range[0])*4;
   unsigned int database_base_length = database_stream_length / 2;
   pico->WriteStream(database_stream, s,database_stream_length); 
+        printf("\nDone with Sending data - Now in Receive Mode");
   
   while((current_database_index < database_base_length) // Haven't exceeded database width
              && (total_hits < max_hits)) { // Also haven't exceeded max desired hits
+        printf("\n Receive Mode : Receiving Data Please be patient");
     if(pico->ReadDeviceAbsolute(READYADDRESS, tempResults, 16) & 0x1) { // new data ready
       pico->ReadDeviceAbsolute(NUMRESULTSADDRESS, numHitsBuffer, 16); // read # of results
       pico->ReadDeviceAbsolute(SUBJECTINDEXADDRESS,indexBuffer, 16); // read subject addr 
@@ -294,12 +299,13 @@ static int s_BlastNaScanSubject_8_4(const LookupTableWrap * lookup_wrap,
 int main(int argc,char **argv) {
   LookupTableWrap * lookup;
   BLAST_SequenceBlk * subj;
+  subj = (BLAST_SequenceBlk *)malloc(sizeof(BLAST_SequenceBlk));
   BlastOffsetPair * __restrict__ offset;
   int max = 1000;
   int range[2];
   range[0] = 0;
   range[1] = 100;
-  char subject_data[30];
+  int subject_data[30];
   char query_data[5]; 
   int i = 0;
   while(i<5) {
@@ -311,7 +317,8 @@ int main(int argc,char **argv) {
     subject_data[i] = i;
     i++;
   }
-//  int results = s_BlastNaScanSubject_8_4(lookup, subj, offset,max,range);
+ subj->sequence = subject_data;
+  int results = s_BlastNaScanSubject_8_4(lookup, subj, offset,max,range);
   
 }
 
