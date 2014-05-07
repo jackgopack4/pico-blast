@@ -36,6 +36,7 @@
 
 #define QUERYADDRESS 0x0
 #define READYADDRESS 0x10
+#define QUERYSUBJECTLENGTH 0x4000
 #define NUMRESULTSADDRESS 0x20
 #define SUBJECTINDEXADDRESS 0x30
 
@@ -189,6 +190,7 @@ typedef struct LookupTableWrap {
 
 static int s_BlastNaScanSubject_8_4(const LookupTableWrap * lookup_wrap,
                                      const BLAST_SequenceBlk * subject,
+  				     const BLAST_SequenceBlk *query,
                                      BlastOffsetPair * __restrict__ offset_pairs,
                                      int max_hits, int * scan_range) {
   int         err, i, j, stream;
@@ -197,10 +199,7 @@ static int s_BlastNaScanSubject_8_4(const LookupTableWrap * lookup_wrap,
   PicoDrv    *pico;
   const char* bitFileName;
   
-  BLAST_SequenceBlk *query;
-  query = (BLAST_SequenceBlk *)malloc(sizeof(BLAST_SequenceBlk));
   int a[]={1,45,77,34};
-  query->sequence = a;
 
   int *s = subject->sequence; // Pointer for current address of database index
   int *abs_start, *s_end; // Pointer for address of absolute start, end
@@ -210,13 +209,12 @@ static int s_BlastNaScanSubject_8_4(const LookupTableWrap * lookup_wrap,
   int word_length = 8;     // Number for word length. Plan to take as input in
                             // the future and support more word lengths in FPGA
 
-  int *q = query->sequence;
 
   int count;                            // Used for incrementing
   int queryLength = query->length;     // Length parameter for query.
   int subjectLength = subject->length;
-  int queryLengthBytes = queryLength / 4;
-  int subjectLengthBytes = subjectLength / 4;
+  int queryLengthBytes = queryLength*4;
+  int subjectLengthBytes = subjectLength*4;
   int tempResults[FULL_128_BITS];
   
   int current_query_index;
@@ -224,6 +222,8 @@ static int s_BlastNaScanSubject_8_4(const LookupTableWrap * lookup_wrap,
   
   int database_stream = 1;
   int results_stream  = 2;
+
+  int length[2]={subject->length,query->length};
 
   // specify the .bit file name on the command line
   bitFileName = "../firmware/m505lx325.fwproj";
@@ -239,7 +239,33 @@ static int s_BlastNaScanSubject_8_4(const LookupTableWrap * lookup_wrap,
               PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
     exit(1);
   }
-  
+
+
+  printf("Begin writing query length and subject length to register in FPGA \n");
+    pico->WriteDeviceAbsolute(QUERYSUBJECTLENGTH,length , FULL_128_BITS);
+  printf("Done writing query to register in FPGA \n");
+
+  abs_start = subject->sequence;
+  printf("Absolute start address of subject sequence is: %p \n", abs_start);
+  s = abs_start + scan_range[0] / COMPRESSIONRATIO;     // 4 bases per byte
+  s_end = abs_start + scan_range[1] / COMPRESSIONRATIO;
+  // Write the query of given length to an address in the FPGA
+  current_query_index = 0;
+  int cntr=0;
+
+  printf("Begin writing query to register in FPGA \n");
+  printf("Value of query_lengthBytes is : %d \n",queryLengthBytes);
+  while(current_query_index < queryLengthBytes) {
+  printf("Writing query to register in FPGA :  \n");
+    pico->WriteDeviceAbsolute(QUERYADDRESS, query->sequence+cntr, FULL_128_BITS);
+    current_query_index+=FULL_128_BITS;
+    cntr=cntr+4;
+  }
+  printf("Done writing query and subject length to register in FPGA \n");
+
+
+
+
   // database goes out via stream #1
   printf("Opening stream to Database Shift Register\n");
   stream = pico->CreateStream(database_stream);
@@ -255,20 +281,7 @@ static int s_BlastNaScanSubject_8_4(const LookupTableWrap * lookup_wrap,
     fprintf(stderr, "couldn't open stream 2! (return code: %i)\n", stream);
     exit(1);
   }
-  
-  abs_start = subject->sequence;
-  printf("Absolute start address of subject sequence is: %p \n", abs_start);
-  s = abs_start + scan_range[0] / COMPRESSIONRATIO;     // 4 bases per byte
-  s_end = abs_start + scan_range[1] / COMPRESSIONRATIO;
-  q = query->sequence;
-  // Write the query of given length to an address in the FPGA
-  current_query_index = 0;
-  printf("Begin writing query to register in FPGA \n");
-  while(current_query_index < queryLengthBytes) {
-    pico->WriteDeviceAbsolute(QUERYADDRESS, abs_start, FULL_128_BITS);
-    current_query_index+=FULL_128_BITS;
-  }
-//  // Stream out the database in compressed format 
+ //  // Stream out the database in compressed format 
   current_database_index = 0;
   unsigned int database_stream_length = (uint32_t)(scan_range[1] - scan_range[0])*4;
   unsigned int database_base_length = database_stream_length / 2;
@@ -299,26 +312,34 @@ static int s_BlastNaScanSubject_8_4(const LookupTableWrap * lookup_wrap,
 int main(int argc,char **argv) {
   LookupTableWrap * lookup;
   BLAST_SequenceBlk * subj;
+  BLAST_SequenceBlk *query;
+  int query_len,seq_len;
   subj = (BLAST_SequenceBlk *)malloc(sizeof(BLAST_SequenceBlk));
+  query = (BLAST_SequenceBlk *)malloc(sizeof(BLAST_SequenceBlk));
   BlastOffsetPair * __restrict__ offset;
   int max = 1000;
   int range[2];
   range[0] = 0;
   range[1] = 100;
-  int subject_data[30];
-  char query_data[5]; 
   int i = 0;
-  while(i<5) {
-    query_data[i] = i;
-    subject_data[i] = i;
+  subj->sequence=(int *)malloc(sizeof(int)*100); 
+  query->sequence=(int *)malloc(sizeof(int)*40); 
+  while(i<100) {
+    subj->sequence[i] = rand();
     i++;
   } 
-  while(i<30) {
-    subject_data[i] = i;
+ i=0;
+  while(i<40) {
+    query->sequence[i] = rand();
+    printf("Current value of query being written is : %x \n",query->sequence[i]);
     i++;
   }
- subj->sequence = subject_data;
-  int results = s_BlastNaScanSubject_8_4(lookup, subj, offset,max,range);
+  query->length=40;
+  subj->length=100;
+  
+  int results = s_BlastNaScanSubject_8_4(lookup, subj,query,offset,max,range);
+  sleep(10); 
+  return 0;
   
 }
 

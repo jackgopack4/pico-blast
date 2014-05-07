@@ -125,6 +125,8 @@ module PicoBlastScan #(
 
    // Register to store the Query  
    reg [1:0] 	       query_reg [4095:0];
+   reg [1:0] 	       query_reg_next [4095:0];
+   reg [8191:0]        query_debug;
 
    // Register to store the Query length
    reg [11:0] 	       query_length;
@@ -218,6 +220,7 @@ begin
 	   state<=START;
 	else
 	   state<=next_state;
+	$display("%m $time : The value of current state is : %b",state);
 end
 
     /*****************************************************
@@ -232,24 +235,34 @@ always @(*)
 begin
 	next_state = START;
 	case(state)
-	START : if(valid_subject_reg==1'b1 && valid_query_reg==1'b1)
+	START : begin
+		if(valid_subject_reg==1'b1 && valid_query_reg==1'b1)
 		next_state = CHECK_FOR_HIT;
 		else
 		next_state = START;
+	$display("%m $time : Curent State : START The next state is %b",next_state);
+		end
 
-	CHECK_FOR_HIT :
+	CHECK_FOR_HIT : begin
 			if(hit_found==1'b1) 	
 			next_state = SENDING_HITS;
 			else
 			next_state = CHECK_FOR_HIT;
-	ERROR_STATE : 
-			  next_state = START;
+	$display("%m $time : Curent State : CHECK_FOR_HIT The next state is %b",next_state);
+			end
 
-	SENDING_HITS : 
+	ERROR_STATE :	  begin 
+			  next_state = START;
+	$display("%m $time : Curent State : ERROR_STATE The next state is %b",next_state);
+			  end
+
+	SENDING_HITS :	  begin 
 		       if(send_data_complete == 1'b1)
 			next_state = CHECK_FOR_HIT;
 		       else
 			next_state = SENDING_HITS;  
+	$display("%m $time : Curent State : SENDING_HITS The next state is %b",next_state);
+			end
 	endcase
 			
 end
@@ -268,17 +281,21 @@ end
 	     valid_query_length<=1'b0;
 	     valid_subject_length<=1'b0;
 	     query_length<=4096;
+	     cnt<=0;
+	     $display("%m $time : Got Pico Rst");
 	     
 	  end
 	else
 	  begin
 	     // Writing the Query in the query_Store register which stores it temproraily and then is stored in query_store
 	     // cnt is used to keep track of the query length and upto where in my query reg have I filled the data
+	         // $display("%m $time : Writing Query Block- Pico Bus : PicoWr is %b and PicoAddr is %h and PicoDataIn is %h",PicoWr,PicoAddr[31:0],PicoDataIn[127:0] );
 
              if (PicoWr && PicoAddr[31:0]!=32'h4000)
                begin
         	  query_store <= PicoDataIn;
  		  cnt<=cnt+1;
+	          $strobe("%m $time : YS_2Writing the Query from the Pico Bus : %h and cnt is : %d",query_store[127:0],cnt);
 	       end
             // Used to read the query length and the database length
 	     else if(PicoWr && PicoAddr[31:0]==32'h4000)
@@ -287,9 +304,11 @@ end
 	          subject_length<=PicoDataIn[31:0];
 	          valid_query_length<=1;
 	          valid_subject_length<=1;
+	          $strobe("%m $time : YS_1Writing the Query and Subject Length from the Pico Bus - Query Length : %h , Subject Length : %h",query_length,subject_length);
 	       end
 	     else
 	       begin
+	          $display("%m $time : Not doing anything useful");
         	  query_store <= query_store;
  		  cnt<=cnt;
 	       end	
@@ -301,17 +320,54 @@ end
   **************************************************************/
    always @(cnt)
      begin
+	if(cnt>0)
+	begin
+	     query_store_next=query_store;
 	for(i=0;i<64;i=i+1)
        	  begin
-	     query_store_next=query_store;
- 	     query_reg[cnt+i-1][1:0]=query_store_next[1:0];
-       	     query_store_next={2'b0,query_store_next[125:0]};
+    	     $display("%m $time : YS_6 Query in the Query Reg : %h and index is : %d and i is %d and cnt is %h",query_store_next,(cnt-1)*64+i,i,cnt);
+ 	     query_reg_next[(cnt-1)*64+i][1:0]=query_store_next[127:126];
+    	     $display("%m $time : YS_7 Query in the Query Reg : %b",query_store_next[127:126]);
+       	     //query_store_next={2'b0,query_store_next[125:0]};
+       	     query_store_next=query_store_next<<2;
+    	     $display("%m $time : YS_3 Writing the Query in the Query Reg : %b",query_reg_next[i]);
  	  end
-	if(cnt*128>=query_length && valid_query_length==1'b1)
-	  valid_query_reg=1'b1;
+	if(cnt*4>=query_length && valid_query_length==1'b1)
+	    begin
+	     $display("%m $time : YS_4 Query Length and Valid Query Length ");
+	     valid_query_reg=1'b1;
+	    end
 	else
 	  valid_query_reg=1'b0;
+	end
      end
+  
+   always @(posedge clk)
+    begin
+	for(i=0;i<4096;i=i+1)
+	query_reg[i]<=query_reg_next[i];
+    end
+
+  /***************************************************************************
+  // Always Block for debug to check whether query has been written properly
+  ****************************************************************************/
+
+   always@(valid_query_reg)
+     begin
+       repeat(2) @ (posedge clk);
+	if(valid_query_reg==1'b1)
+	   begin
+	     $display("%m $time : YS_10 Value of valid_query_reg is : %b and cnt is :%d",valid_query_reg,cnt);
+	     for(i=0;i<(cnt)*64;i=i+1)
+		begin
+		query_debug = query_debug<<2;
+		query_debug[1:0] = query_reg[i][1:0];
+	     $display("%m $time : YS_8 Query is : %b and Query debug is %b and value of i is : %d and cnt is %d",query_reg[i],query_debug[1:0],i,cnt);
+		end
+	     $display("%m $time : YS_12 Query is : %h",query_debug[1279:0]);
+	   end
+     end
+
 
   /**************************************************************
   // Always Block to write the Subject Sequence
