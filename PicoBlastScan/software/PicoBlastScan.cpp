@@ -298,9 +298,9 @@ static int s_BlastNaScanSubject_8_4(const LookupTableWrap * lookup_wrap,
         pico->ReadStream(results_stream, tempResults, 16); // Receive 128-bit query hit
         int sampleResult = tempResults[0] << 4 + tempResults[1] >> 4;
         printf("First result at index: %08x", sampleResult);
-        // Read the query index from the 12-bit numbers saved in tempResults
-        // Then, store each one into offset_pairs
-        // Calculating the subject index as well as the query index
+        // stream in the 4096-bit register containing hits
+        // loop through and find what index each hit is at
+        // 
         // offset_pairs[total_hits].qs_offsets.q_off = tempResults[
       }
     }

@@ -28,3 +28,4 @@ ifeq "$(COMPILER)-$(DEBUG_SFX)" "icc-Release"
 	$(CC_WRAPPER) $(CC) $(CFLAGS_ALL) -fno-builtin-exp -fno-builtin-log \
 	    -fno-builtin-sin $< -o $@ $(CC_FILTER)
 endif
+
