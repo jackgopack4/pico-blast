@@ -67,6 +67,11 @@
 *                 de-asserted, the module instantiating this one should stop
 *                 sending targets and queries to this module.
 *
+*                 5) traceback data - This module outputs the combined traceback
+*                 data from each individual cell.  The data is valid only once
+*                 alignment has begun and continues until a valid score is being 
+*                 output. 
+* 
 * Definitions   : 1) USE_LOCAL_ALIGNMENT - Define this to do local alignment.
 *                 This will track the best score found anywhere in the
 *                 dynamic programming table.  It also imposes a minimum
@@ -81,6 +86,9 @@
 *
 * Assumptions   : 1) the query gets zipper-loaded into the systolic array at
 *                 the start of every target
+*                 2) the traceback output will always be able to accept more
+*                 data.  Processing is not currently halted in the event that
+*                 the output is not ready for data and data will be lost.
 *
 * Copyright     : 2013, Pico Computing, Inc.
 */
@@ -145,9 +153,9 @@ module SystolicArray #(
     input 		       ScoreReady, // output is ready to accept another score when this is asserted
 
     // traceback
-    output [`TRACEBACK_WIDTH-1:0] TracebackData, // global alignment score
-    output reg		       TracebackValid, // both global and local scores are valid when this is asserted
-    input 		       TracebackReady, // output is ready to accept another score when this is asserted
+    output [`TRACEBACK_WIDTH-1:0] TracebackData, // global traceback data
+    output reg		       TracebackValid, // traceback data is valid while asserted
+    input 		       TracebackReady, // output is ready for another traceback score while asserted
     
     // These are the standard PicoBus signals that we'll use to communicate with the rest of the system.
     input 		       PicoClk, 

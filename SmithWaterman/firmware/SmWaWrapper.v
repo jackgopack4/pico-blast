@@ -85,7 +85,7 @@ module SmWaWrapper #(
     input 			s1o_rdy,
     output [SCORE_STREAM_W-1:0] s1o_data,
 
-     // These are the signals for stream #1 OUT of the firmware.
+     // These are the signals for the traceback stream(s) OUT of the firmware.
     output 			traceback_valid,
     input 			traceback_rdy,
     output [`TRACEBACK_WIDTH-1:0] 		traceback_data,

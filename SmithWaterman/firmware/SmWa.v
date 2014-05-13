@@ -37,6 +37,10 @@
 *                 domain.  At this point, we can put some higher-level logic,
 *                 if so desired, or we can send the results back to the
 *                 software on a stream.
+* 
+*                 The traceback data crosses clock domains in this module 
+*                 through its own FIFO.  The outputs of the tracebackFifo are passed
+*                 up the modules directly to the traceback output stream(s).
 *
 * Assumptions   : 1) we always align 1 query to 1 target sequence
 *                 2) we know that the query and target are actually received

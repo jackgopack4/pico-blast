@@ -93,7 +93,9 @@ module SmWaCell #(
 `endif  // USE_AFFINE_GAP
 
     output  reg         [1:0]           traceback_out=0,// traceback directionality, inicates the direction from which the max
-                                                        //  score originated.
+                                                        //  score originated. Outputs during the same clock cycle as the score it is
+                                                        //  is associated with.
+                                                        //    0:  not valid 
                                                         //    1:  E scoring chosen
                                                         //    2:  F scoring chosen
                                                         //    3:  H scoring chosen
@@ -226,14 +228,14 @@ module SmWaCell #(
     // E(i,j) and F(i,j) values, which are inputs on this clock cycle
     assign sub                  = (query === target) ? match : mismatch;
     
-    // compute the next similarity score
+    // compute the next similarity score and traceback direction
     always @ (*) begin
         match_score             = h_diag + sub;
 `ifdef  USE_AFFINE_GAP
         // if we are using Affine-gap scoring, then e_in = E[i,j] and f_in
         // = F[i,j]
         max_gap                 = max(e_in, f_in);
-        next_traceback = (e_in > f_in)? 1: 2;
+        next_traceback = (e_in < f_in)? 2: 1;
        
 `else   // !USE_AFFINE_GAP
         // else we rely upon the newly computed F[i,j] and E[i,j] gap open
@@ -394,7 +396,8 @@ module SmWaCell #(
    reg valid_trace;
    always @(posedge clk) begin
 
-      // Trace data remains invalid until a new target enters the cell
+      // Trace data remains invalid until a new target enters the cell and continues
+      // until the end of the target enters the cell
       if (rst) begin
 	 valid_trace <= 0;
       end else if (newTargetIn && enable) begin

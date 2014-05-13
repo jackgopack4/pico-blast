@@ -117,6 +117,9 @@
 *                    1 result in the output stream
 *                 6) we must instantiate at least 1 SmWaWrapper module
 *                 7) SCORE_W <= INT_STREAM_W - 16
+*                 8) MAX_QUERY_LENGTH is less than or queal to 128
+*                 9) TRACEBACK_WIDTH is double the max query length 
+*                10) Traceback data will only be given for the first smithwaterman unit
 *
 * Defines       : This section lists some of the defines that are supported by
 *                 this system as the impact that they have on the consumed
@@ -174,6 +177,12 @@
 *                 aligned if they are shorter than this value.  Queries longer
 *                 than this value cannot be properly aligned by this system.
 *                 
+*                 -TRACEBACK_WIDTH
+*                 This is the width of the traceback data.  The width must be
+*                 double that of the maximum query length and only values of 
+*                 up to 256 are supported (MAX_QUERY_LENGTH = 128). This value
+*                 is not currently automatically set.
+*                 
 *                 -MAX_TARGET_LENGTH
 *                 This is length of the longest target/reference/db sequence
 *                 that we can align with this system.  The target length has
@@ -229,7 +238,7 @@ module PicoSmithWaterman #(
     input 			     s1o_rdy,
     output [`STREAM1_OUT_WIDTH-1:0]  s1o_data,
 
-    // Traceback output stream 
+    // Traceback output stream(s)
     output 			     s12o_valid,
     input 			     s12o_rdy,
     output [`STREAM12_OUT_WIDTH-1:0] s12o_data,
@@ -449,13 +458,15 @@ module PicoSmithWaterman #(
         assign s1o_data     = so_data   [0];
         assign so_rdy   [0] = s1o_rdy;
 
+
+        // Traceback data is divided across two streams to allow larger query sizes. Streams currently assumed 128 bits wide
         assign s12o_valid   = so_valid_trace;
         assign s12o_data    = so_data_trace[127:0];
         assign so_rdy_trace = s12o_rdy;
    
         assign s13o_valid   = so_valid_trace;
         assign s13o_data    = so_data_trace[255:128];
-        assign so_rdy_trace = s13o_rdy; //todo: combine dont overwrite
+        assign so_rdy_trace = s13o_rdy && s12o_rdy; 
    
     `endif  // SW_UNITS_1
     `ifdef  SW_UNITS_2
