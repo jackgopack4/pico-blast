@@ -1,9 +1,18 @@
+/*
+* File Name	: traceback.cpp
+*
+* Description	: This file takes the 2D trace matrix calculated based on the traceback
+*			stream received from FPGA and computes the actual traceback path.
+*			This function can basically be described as flattening of the 2D 
+*			trace matrix in to a 1D traceback path.
+*/
+
 #include "traceback.h"
 
 int traceback_function(int **trace_matrix,int *traceback, int query_size, int subject_size)
 {
 	int traceback_index=0,row_index, column_index;
-	int size;
+	int size;	//this is the actual size of the traceback matrix
 
 	row_index=query_size;	//the last row of the matrix from the traceback will start
 	column_index=subject_size;	//the last column of the matrix from the traceback will start
@@ -24,7 +33,7 @@ int traceback_function(int **trace_matrix,int *traceback, int query_size, int su
 		else if(trace_matrix[row_index][column_index]==UP)	//indicates a gap in db (insertion)
 		{
 			traceback[traceback_index]=GAP_IN_SUBJECT;
-      traceback_index++;
+			traceback_index++;
 			row_index--;
 		}
 		else if(trace_matrix[row_index][column_index]==LEFT)	//indicates a gap in query(deletion)
