@@ -251,8 +251,12 @@ int ReceiveScore(StreamInfo_t* info){
     return err;
 }
 
-// in this method, we ONLY receive the traceback data.  we do not actually compute any traceback info
-void * traceback(void* arg){
+/* This method gathers all of the traceback data from a single stream.  All of the data is 
+ * put into an array in the stream info struct.  The argument passed in is expected to be 
+ * of type args_t.  This function is indended to be the start point of a new thread and
+ * not called directly.  All data is returned through the structs contained in the argument.
+ */
+void * ReceiveTracebackData(void* arg){
 
   args_t *a = (args_t *) arg;
   StreamInfo_t *info = a->streaminfo;
@@ -271,9 +275,8 @@ void * traceback(void* arg){
   //  buf_len         = a->buffer_length;
   buf_len = (query->seq.l + db->seq.l - 1) *2;
   buf_size        = sizeof(uint64_t) * buf_len;
-  printf("Thread %d, Creating uint64_t buffer w/ %i entries, %i B per entry, %i B total\n", index, buf_len, (int) sizeof(uint64_t), buf_len*((int)sizeof(uint64_t)));
+  if (VERBOSE) printf("Thread %d, Creating uint64_t buffer w/ %i entries, %i B per entry, %i B total\n", index, buf_len, (int) sizeof(uint64_t), buf_len*((int)sizeof(uint64_t)));
   rx_buf          = (uint64_t*) calloc(buf_len, sizeof(uint64_t));
-  printf("Thread %d, Finished initializing buffer %d.\n", index, buf_size);
   // receive the contents of buffer from the FPGA
   if (VERBOSE) printf("Thread %d, Reading %i B from stream handle %i\n", index, buf_size, info->traceback_stream[index]);
   if ((err = info->pico->ReadStream(info->traceback_stream[index], rx_buf, buf_size)) < 0){
@@ -281,18 +284,21 @@ void * traceback(void* arg){
     exit(EXIT_FAILURE);
   }
 
-  // if (VERBOSE) 
-  //   for (int i=0; i < buf_len; i++)
-  //     printf("%lx\n", rx_buf[i]);
+  if (VERBOSE) 
+    for (int i=0; i < buf_len; i++)
+      printf("%lx\n", rx_buf[i]);
 
   info->traceback_buffer[index] = rx_buf;
-  printf("Thread %d complete.\n", index);
 }
 
+
+/* This function combines the traceback data arrays from multiple threads into a single buffer in the 
+ * ordering that is expected from the traceback functions. 
+ */
 int combineStreamData(uint64_t **stream_data, int num_streams, int length, uint64_t* out_buffer) {
   
   int index = 0;
-  for (int l=0; l<length*4; l+=2){
+  for (int l=0; l<length*2; l+=2){ // 2s due to each stream being divided into 64bit halves
     for (int s=0; s<num_streams; s++) {
       out_buffer[index++] = stream_data[s][l];
       out_buffer[index++] = stream_data[s][l+1];
@@ -443,10 +449,10 @@ int main(int argc, char* argv[]) {
     
     // Create traceback stream(s)
     pthread_t traceback_thread[8];
-    int size = get_size(query_db_info[0].start_info.query_seq->seq.l);
+    int stream_count = get_size(query_db_info[0].start_info.query_seq->seq.l);
     int buffer_length = (query_db_info[0].start_info.query_seq->seq.l + query_db_info[0].start_info.db_seq->seq.l - 1) *2;
-    args_t *a = new args_t[size];
-    for (int n=0; n<size; n++){
+    args_t *a = new args_t[stream_count];
+    for (int n=0; n<stream_count; n++){
       if ((err = aligner->CreateStream(12+n)) < 0){
 	fprintf(stderr, "CreateStream error: %s\n", PicoErrors_FullError(err, ibuf, sizeof(ibuf)));
 	return EXIT_FAILURE;
@@ -461,7 +467,7 @@ int main(int argc, char* argv[]) {
       else 
 	a[n].buffer_length = (64 + query_db_info[0].start_info.db_seq->seq.l - 1)*2;
       buffer_length -= (64 + query_db_info[0].start_info.db_seq->seq.l - 1)*2;
-      err = pthread_create(&traceback_thread[n], NULL, traceback, (void *) &a[n]);
+      err = pthread_create(&traceback_thread[n], NULL, ReceiveTracebackData, (void *) &a[n]);
       if (err != 0){
 	fprintf(stderr, "Thread creation error: %d\n", err);
 	return EXIT_FAILURE;
@@ -479,54 +485,48 @@ int main(int argc, char* argv[]) {
             query_db_info[0].end_info.globalTargetBase);
 
     // Wait for traceback thread to finish reading
-    for (int n=0; n<size; n++){
+    for (int n=0; n<stream_count; n++){
       if ((err = pthread_join(traceback_thread[n], NULL)) != 0){
 	fprintf(stderr, "Thread join error: %d\n", err);
 	return EXIT_FAILURE;
       }
     }
 
+    // Combine data from multiple streams into single traceback data array.
     if (VERBOSE)
       printf("Combining stream data.\n");
     int traceback_size = query_db_info[0].start_info.query_seq->seq.l + query_db_info[0].start_info.db_seq->seq.l - 1;
-    uint64_t *buffer = (uint64_t *)calloc(traceback_size*2*size, sizeof(uint64_t));
-    combineStreamData(&(query_db_info[0].traceback_buffer[0]), size, traceback_size, buffer);
+    uint64_t *buffer = (uint64_t *)calloc(traceback_size*2*stream_count, sizeof(uint64_t));
+    combineStreamData(&(query_db_info[0].traceback_buffer[0]), stream_count, traceback_size, buffer);
 		      
     // print out the data that we just received
-    printf("All traceback data received\n");
     if (VERBOSE) 
-      for (int i=0; i < traceback_size*4; i++)
+      for (int i=0; i < traceback_size*2*stream_count; i++)
     	printf("index: %d, %lx\n", i, buffer[i]);
-    // for (int i=0; i < 2; i++){
-    //   for (int s=0; s<traceback_size*2; s++){
-    // 	printf("Thread %d, index %d:  %lx\n", i, s, query_db_info[0].traceback_buffer[i][s]);
-    //   }
-    // }
 
     printf("Starting traceback calculation.\n");
-    //The maximum possible value of th traceback matrix
-    printf("%zd\t%zd\n", query_db_info[0].start_info.query_seq->seq.l, query_db_info[0].start_info.db_seq->seq.l);
-    printf("%d\n", traceback_size);
     int * traceback = new int[traceback_size];
- //   printf("memory allocated\n");
 
-    // // Perform traceback calculation
+    // Perform traceback calculations
     err = trace_matrix_generate(traceback, buffer,
     				query_db_info[0].start_info.query_seq->seq.l,  
     				query_db_info[0].start_info.db_seq->seq.l);
 
-	if(err==0) {
-		printf("Traceback calculation failed\n");
-		printf("The trace matrix data received is invalid\n");
-	}
-	else
-	{
-		printf("Traceback calculation successfull\n");
-		printf("Traceback matrix is:\n");
-		for(int i=0;i<err;i++)
-			printf("%d\t",traceback[i]);
-		printf("\n");
-	}
+    if (VERBOSE) {
+      if(err==0) {
+        printf("Traceback calculation failed\n");
+        printf("The trace matrix data received is invalid\n");
+      }
+      else {
+        printf("Traceback calculation successfull\n");
+        printf("Traceback matrix is:\n");
+        for(int i=0;i<err;i++)
+          printf("%d\t",traceback[i]);
+        printf("\n");
+      }
+    }
+
+
     /////////////
     // CLEANUP //
     /////////////
@@ -541,8 +541,8 @@ int main(int argc, char* argv[]) {
     for (int n=0; n<get_size(query_db_info[0].start_info.query_seq->seq.l); n++){
       free(query_db_info[0].traceback_buffer[n]);
     }
-	   delete      aligner;
-	 delete []   query_db_info;
-
-	 return EXIT_SUCCESS;
+    delete      aligner;
+    delete []   query_db_info;
+    
+    return EXIT_SUCCESS;
 }

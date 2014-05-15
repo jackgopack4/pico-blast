@@ -97,6 +97,8 @@ typedef struct StreamInfo {
     uint64_t*       traceback_buffer[8];
 } StreamInfo_t;
 
+
+// this struct is used as the argument to a new thread that reads the traceback data from the FPGA
 typedef struct args {
   StreamInfo_t* streaminfo;
   int thread_index;
@@ -164,6 +166,6 @@ int ReceiveScore(StreamInfo_t* info);
  * This method received the traceback scoring matrix from the FPGA.
  * The traceback info will still be in the encoded format from the FPGA and will need to be parsed.
  */
-void *traceback(void* arg);
+void *ReceiveTracebackData(void* arg);
 
 #endif /* PICOSW_H_ */
