@@ -1,7 +1,11 @@
 TARGET = picosw
 USER_SOURCES = PicoSW.cpp \
 kseq.h \
-CParams.cpp
+CParams.cpp \
+trace_matrix.h \
+traceback.h \
+trace_matrix.cpp \
+traceback.cpp
 
 LDFLAGS+=-lz 
 

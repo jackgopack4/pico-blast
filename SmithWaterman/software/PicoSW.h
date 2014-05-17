@@ -26,7 +26,7 @@
 #include <zlib.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <pthread.h>
 #include <string>
 
 #include <pico_drv.h>
@@ -34,6 +34,8 @@
 
 #include "CParams.h"
 #include "kseq.h"
+#include "traceback.h"
+#include "trace_matrix.h"
 
 // declare the type of file handler and the read() function
 KSEQ_INIT(gzFile, gzread)
@@ -88,10 +90,20 @@ typedef struct StreamInfo {
     pthread_t       thread;
     PicoDrv*        pico;
     int             stream;
+    int             traceback_stream[8];
     fpga_cfg_t*     cfg;
     StartInfo_t     start_info;
     EndInfo_t       end_info;
+    uint64_t*       traceback_buffer[8];
 } StreamInfo_t;
+
+
+// this struct is used as the argument to a new thread that reads the traceback data from the FPGA
+typedef struct args {
+  StreamInfo_t* streaminfo;
+  int thread_index;
+  int buffer_length;
+} args_t;
 
 ///////////////
 // CONSTANTS //
@@ -149,5 +161,11 @@ int AlignQueryToDB(StreamInfo_t* info);
  * For now, this function only returns a score, but we have a LOT more data available if desired.
  */
 int ReceiveScore(StreamInfo_t* info);
+
+/*
+ * This method received the traceback scoring matrix from the FPGA.
+ * The traceback info will still be in the encoded format from the FPGA and will need to be parsed.
+ */
+void *ReceiveTracebackData(void* arg);
 
 #endif /* PICOSW_H_ */

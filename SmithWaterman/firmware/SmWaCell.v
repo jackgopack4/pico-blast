@@ -92,6 +92,14 @@ module SmWaCell #(
                                                         // because it gets reused by this systolic cell in the next clock cycle
 `endif  // USE_AFFINE_GAP
 
+    output  reg         [1:0]           traceback_out=0,// traceback directionality, inicates the direction from which the max
+                                                        //  score originated. Outputs during the same clock cycle as the score it is
+                                                        //  is associated with.
+                                                        //    0:  not valid 
+                                                        //    1:  E scoring chosen
+                                                        //    2:  F scoring chosen
+                                                        //    3:  H scoring chosen
+ 
 `ifdef  USE_LOCAL_ALIGNMENT
     input       signed  [SCORE_W-1:0]   h_max_in,       // local maximum score from the cell above this one
     input       signed  [Q_POS_W-1:0]   h_max_i_in,     // query index of the systolic cell with the max score
@@ -136,6 +144,8 @@ module SmWaCell #(
     wire        signed  [SCORE_W-1:0]   sub;            // match/substitution score computed based upon the current query/target bases
 
     reg         signed  [SCORE_W-1:0]   next_h;         // next value for the similarity score
+
+    reg                         [1:0]   next_traceback; // next value for traceback directionality
     
     reg         signed  [SCORE_W-1:0]   match_score;    // h_diag + sub
     reg         signed  [SCORE_W-1:0]   max_gap;        // max(e,f)
@@ -218,22 +228,28 @@ module SmWaCell #(
     // E(i,j) and F(i,j) values, which are inputs on this clock cycle
     assign sub                  = (query === target) ? match : mismatch;
     
-    // compute the next similarity score
+    // compute the next similarity score and traceback direction
     always @ (*) begin
         match_score             = h_diag + sub;
 `ifdef  USE_AFFINE_GAP
         // if we are using Affine-gap scoring, then e_in = E[i,j] and f_in
         // = F[i,j]
         max_gap                 = max(e_in, f_in);
+        next_traceback = (e_in < f_in)? 2: 1;
+       
 `else   // !USE_AFFINE_GAP
         // else we rely upon the newly computed F[i,j] and E[i,j] gap open
         // scores
         max_gap                 = max(next_e, next_f);
+        next_traceback = (next_e < next_f)? 2: 1;
+
 `endif  // USE_AFFINE_GAP
         if (!queryEn) begin
             next_h              = h_in;
+            next_traceback = 3;
         end else begin
             next_h              = max(match_score, max_gap);
+            next_traceback = (match_score < max_gap)? next_traceback: 3;
         end
     end
 
@@ -373,6 +389,31 @@ module SmWaCell #(
             h_out               <= next_h;
         end
     end
+
+   ///////////////
+   // TRACEBACK //
+   ///////////////
+   reg valid_trace;
+   always @(posedge clk) begin
+
+      // Trace data remains invalid until a new target enters the cell and continues
+      // until the end of the target enters the cell
+      if (rst) begin
+	 valid_trace <= 0;
+      end else if (newTargetIn && enable) begin
+	 valid_trace <= 1;
+      end else if (endTargetIn) begin
+	 valid_trace <= 0;
+      end
+
+      // Assign the next_traceback value only once the data has become useful
+      if (rst || !valid_trace) begin
+	 traceback_out <= 0;
+      end else begin
+	 traceback_out <= next_traceback;
+      end
+   end
+
 
     ///////////
     // DEBUG //

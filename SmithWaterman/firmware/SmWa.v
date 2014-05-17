@@ -37,6 +37,10 @@
 *                 domain.  At this point, we can put some higher-level logic,
 *                 if so desired, or we can send the results back to the
 *                 software on a stream.
+* 
+*                 The traceback data crosses clock domains in this module 
+*                 through its own FIFO.  The outputs of the tracebackFifo are passed
+*                 up the modules directly to the traceback output stream(s).
 *
 * Assumptions   : 1) we always align 1 query to 1 target sequence
 *                 2) we know that the query and target are actually received
@@ -70,53 +74,59 @@ module SmWa #(
     // Stream Clock Domain //
     /////////////////////////
     // Note: inputs and outputs are all synchronous to this clock
-    input                               clk, 
-    input                               rst,
+    input 			clk, 
+    input 			rst,
     
     // This stream is used to carry the target data into the FPGA
-    input                               target_valid,
-    output                              target_ready,
-    input   [STREAM_W-1:0]              target_data,
+    input 			target_valid,
+    output 			target_ready,
+    input [STREAM_W-1:0] 	target_data,
     
     // This stream is used to carry the query data into the FPGA
-    input                               query_valid,
-    output                              query_ready,
-    input   [STREAM_W-1:0]              query_data,
+    input 			query_valid,
+    output 			query_ready,
+    input [STREAM_W-1:0] 	query_data,
     
     // This stream is used to carry score results out of the FPGA back to hte
     // the software
-    output                              score_valid,
-    input                               score_ready,
-    output  [SCORE_STREAM_W-1:0]        score_data,
+    output 			score_valid,
+    input 			score_ready,
+    output [SCORE_STREAM_W-1:0] score_data,
+    
+    // This stream is used to carry score results out of the FPGA back to hte
+    // the software
+    output 			traceback_valid,
+    input 			traceback_ready,
+    output [`TRACEBACK_WIDTH-1:0]  traceback_data,
     
     // Scoring Matrix, which is set via the PicoBus
     // Note: these should be signed 2's complement numbers
-    input       signed  [SCORE_W-1:0]   match,          // positive score for a match
-    input       signed  [SCORE_W-1:0]   mismatch,       // negative score for a mismatch
-    input       signed  [SCORE_W-1:0]   gapOpen,        // negative score for opening a gap
-`ifdef  USE_AFFINE_GAP
-    input       signed  [SCORE_W-1:0]   gapExtend,      // negative score for extending a gap
-`endif  // USE_AFFINE_GAP
+    input signed [SCORE_W-1:0] 	match, // positive score for a match
+    input signed [SCORE_W-1:0] 	mismatch, // negative score for a mismatch
+    input signed [SCORE_W-1:0] 	gapOpen, // negative score for opening a gap
+`ifdef USE_AFFINE_GAP
+    input signed [SCORE_W-1:0] 	gapExtend, // negative score for extending a gap
+`endif // USE_AFFINE_GAP
 
     ///////////////////////
     // SmWa Clock Domain //
     ///////////////////////
     // Note: the guts of our system operate in this clock domain
-    input                               clkSmWa,
-    input                               rstSmWa,
+    input 			clkSmWa,
+    input 			rstSmWa,
     
     /////////////
     // PICOBUS //
     /////////////
     
     // These are the standard PicoBus signals that we'll use to communicate with the rest of the system.
-    input                               PicoClk, 
-    input                               PicoRst,
-    input  [31:0]                       PicoAddr,
-    input  [31:0]                       PicoDataIn, 
-    input                               PicoRd, 
-    input                               PicoWr,
-    output [31:0]                       PicoDataOut
+    input 			PicoClk, 
+    input 			PicoRst,
+    input [31:0] 		PicoAddr,
+    input [31:0] 		PicoDataIn, 
+    input 			PicoRd, 
+    input 			PicoWr,
+    output [31:0] 		PicoDataOut
 );
     
     localparam MAX_QUERY_W              = BASE_W * MAX_QUERY_LEN;
@@ -177,6 +187,11 @@ module SmWa #(
     wire    [T_POS_W-1:0]               globalScoreJ;
     wire                                scoreValid;
     wire                                scoreReady;
+
+    // data from the systolic array to the traceback FIFO
+    wire    [`TRACEBACK_WIDTH-1:0]		tracebackData;
+    wire 				tracebackValid;
+    wire                                tracebackReady;
 
     // actual PicoBus data is this OR'd with PicoBus output data from sub-modules
     reg     [31:0]                      PicoDataOutLocal;   // local PicoBus data
@@ -388,6 +403,10 @@ module SmWa #(
         
         .ScoreValid                     (scoreValid),
         .ScoreReady                     (scoreReady),
+
+        .TracebackData                  (tracebackData),
+        .TracebackValid                 (tracebackValid),
+        .TracebackReady                 (tracebackReady),
         
         // PicoBus - for debug only
         .PicoClk                        (PicoClk),
@@ -424,6 +443,27 @@ module SmWa #(
         .rd_en      (score_ready),
         .dout       (score_data),
         .empty      (scoreFifoEmpty)
+    );
+
+    ////////////////////
+    // TRACEBACK FIFO //
+    ////////////////////
+    assign tracebackReady = ~tracebackFifoFull;
+    assign traceback_valid = ~tracebackFifoEmpty;
+    asyncFifoBRAM #(
+        .WIDTH      (`TRACEBACK_WIDTH)
+    ) tracebackFifo (
+        .wr_clk     (clkSmWa),
+        .wr_rst     (rstSmWa),
+	.din        (tracebackData),	     
+        .wr_en      (tracebackValid),
+        .full       (tracebackFifoFull),
+        
+        .rd_clk     (clk),
+        .rd_rst     (rst),
+        .rd_en      (traceback_ready),
+        .dout       (traceback_data),
+        .empty      (tracebackFifoEmpty)
     );
 
     ///////////
